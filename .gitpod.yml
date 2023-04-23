@@ -1,12 +1,12 @@
-
 # For more details, please see https://www.gitpod.io/docs/references/gitpod-yml
 image: gitpod/workspace-postgres
 
 tasks:
-  - init: python -m venv venv
-    command: |
+  - init: 
+      python -m venv venv
       source venv/bin/activate
-      pip install -r requirements.txt
+    command:
+      echo "foo"
     env:
       DATABASE_URL: postgres://gitpod@localhost/sigs
 
