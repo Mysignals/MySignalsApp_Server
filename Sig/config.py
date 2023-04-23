@@ -1,11 +1,21 @@
 import os
+import datetime
 from dotenv import load_dotenv
+
 
 load_dotenv(".env")
 
 class App_Config:
     SECRETE_KEY=os.environ.get("SECRETE_KEY")
+
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = True
+
+    SESSION_TYPE="sqlalchemy"
+    SESSION_USE_SIGNER=True
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=7)
+
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
     MAIL_USE_TLS = True
