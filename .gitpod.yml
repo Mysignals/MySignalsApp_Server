@@ -4,9 +4,12 @@ image: gitpod/workspace-postgres
 tasks:
   - init: 
       python -m venv venv
+    command: |
       source venv/bin/activate
-    command:
-      echo "foo"
+      pip install --upgrade pip
+      pip install -r requirements.txt
+
+      
     env:
       DATABASE_URL: postgres://gitpod@localhost/sigs
 
