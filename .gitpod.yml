@@ -9,6 +9,7 @@ tasks:
       source venv/bin/activate
       pip install --upgrade pip
       pip install -r requirements.txt
+      python run.py
 
       
     env:
@@ -18,6 +19,7 @@ tasks:
 ports:
   - port: 5000
     onOpen: ignore
+    visibility: public
   - port: 5432
     onOpen: ignore
 
