@@ -12,9 +12,9 @@ class User(db.Model):
     id = db.Column(db.String(34), primary_key=True, unique=True, default=get_uuid)
     user_name = db.Column(db.String(345), unique=True, nullable=False)
     email = db.Column(db.String(345), unique=True, nullable=False)
-    password = db.COlumn(db.String(), nullable=False)
+    password = db.Column(db.String(), nullable=False)
     api_key = db.Column(db.String(160), nullable=True)
-    is_active = db.Colum(db.Boolean(), nullable=False, default=False)
+    is_active = db.Column(db.Boolean(), nullable=False, default=False)
     date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __init__(self, user_name, email, password, api_key=None):

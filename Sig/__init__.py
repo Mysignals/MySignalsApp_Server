@@ -39,8 +39,10 @@ def create_app(config_class=App_Config):
     sess.init_app(app)
 
     from Sig.main.routes import main
+    from Sig.user.routes import user
 
     app.register_blueprint(main)
+    app.register_blueprint(user)
 
     with app.app_context():
         db.create_all()

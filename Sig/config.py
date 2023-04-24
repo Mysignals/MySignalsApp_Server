@@ -15,7 +15,7 @@ class App_Config:
 
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
 
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
