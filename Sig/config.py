@@ -5,12 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-class App_Config:
-    SESSION_TYPE="sqlalchemy"
-    SESSION_USE_SIGNER=True
-    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=7)
 
-    SECRET_KEY=os.environ.get("SECRET_KEY")
+class App_Config:
+    SESSION_TYPE = "sqlalchemy"
+    SESSION_USE_SIGNER = True
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
+
+    SECRET_KEY = os.environ.get("SECRET_KEY")
 
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False

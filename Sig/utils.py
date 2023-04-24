@@ -1,5 +1,6 @@
 from Sig import db
 
+
 def query_one_filtered(table, **kwargs):
     return db.session.execute(db.select(table).filter_by(**kwargs)).scalar_one_or_none()
 

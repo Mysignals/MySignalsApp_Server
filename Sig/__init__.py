@@ -8,12 +8,13 @@ from flask_migrate import Migrate
 
 from Sig.config import App_Config
 
-db=SQLAlchemy()
+db = SQLAlchemy()
 
 bcrypt = Bcrypt()
 
 sess = Session()
 mail = Mail()
+
 
 def create_app(config_class=App_Config):
     """
@@ -24,7 +25,7 @@ def create_app(config_class=App_Config):
     """
     # Initialize Flask-
     app = Flask(__name__)
-    app.config["SESSION_SQLALCHEMY"]=db
+    app.config["SESSION_SQLALCHEMY"] = db
     app.config.from_object(App_Config)
     # Initialize CORS
     CORS(app)
@@ -36,7 +37,6 @@ def create_app(config_class=App_Config):
     bcrypt.init_app(app)
     # Initialize Flask-Session
     sess.init_app(app)
-    
 
     from Sig.main.routes import main
 
@@ -46,4 +46,3 @@ def create_app(config_class=App_Config):
         db.create_all()
 
     return app
-
