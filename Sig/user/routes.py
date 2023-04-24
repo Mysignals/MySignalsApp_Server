@@ -34,13 +34,13 @@ def register_user():
             jsonify(
                 {"error": "Conflict", "message": "User_name or email already exists"}
             ),
-            400,
+            403,
         )
 
     user = User(
         user_name=user_name,
         email=email,
-        password=bcrypt.generate_password_hash(password),
+        password=bcrypt.generate_password_hash(password).decode('utf-8'),
     )
     try:
         user.insert()
@@ -110,7 +110,7 @@ def login_user():
     if not (data and user_name_or_mail and password):
         return (
             jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
-            400,
+            400
         )
     try:
         user = query_one_filtered(User, user_name=user_name_or_mail)
@@ -154,7 +154,7 @@ def login_user():
             jsonify(
                 {
                     "error": "Internal server error",
-                    "message": f"It's not you it's us, {e}",
+                    "message": f"It's not you it's us",
                 }
             ),
             500,
@@ -209,7 +209,7 @@ def reset_token(token):
     return jsonify({"error": "Invalid token"}), 400
 
 
-@user.route("/logout", methods=["GET"])
+@user.route("/logout", methods=["GET","POST"])
 def logout_user():
     session.pop("user", None)
     return (

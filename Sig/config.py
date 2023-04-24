@@ -8,7 +8,7 @@ load_dotenv(".env")
 
 class App_Config:
     SESSION_TYPE = "sqlalchemy"
-    SESSION_USE_SIGNER = True
+    SESSION_USE_SIGNER = False
     PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
