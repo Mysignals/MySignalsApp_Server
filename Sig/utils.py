@@ -1,4 +1,4 @@
-from Sig import db
+from Sig import db,mail
 from flask import current_app, url_for
 from flask_mail import Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -54,7 +54,7 @@ def verify_reset_token(user, token):
 
 
 def send_email(user, url_func):
-    token = user.get_reset_token()
+    token = get_reset_token(user)
     msg = Message(
         "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
     )

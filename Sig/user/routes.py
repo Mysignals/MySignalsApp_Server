@@ -7,6 +7,7 @@ from Sig.utils import (
     send_email,
 )
 from Sig import bcrypt, db
+import sys
 
 
 user = Blueprint("user", __name__, url_prefix="/users")
@@ -32,6 +33,8 @@ def register_user():
             400,
         )
 
+    user_name=user_name.lower()
+
     if query_one_filtered(User, user_name=user_name) or query_one_filtered(
         User, email=email
     ):
@@ -48,9 +51,12 @@ def register_user():
         password=bcrypt.generate_password_hash(password).decode("utf-8"),
     )
     try:
+        send_email(user, "user.activate_user")
         user.insert()
-        send_email(user, "activate_user")
+        
     except Exception as e:
+        print(e)
+        print(sys.exc_info())
         return (
             jsonify(
                 {
