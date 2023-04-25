@@ -1,5 +1,6 @@
 from Sig import db
-from flask import current_app
+from flask import current_app, url_for
+from flask_mail import Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
@@ -47,3 +48,19 @@ def verify_reset_token(user, token):
     except:
         return None
     return query_one_filtered(User, id=user_id)
+
+
+# Flask Mail helpers
+
+
+def send_email(user, url_func):
+    token = user.get_reset_token()
+    msg = Message(
+        "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
+    )
+    msg.body = f""" visit the following link
+{url_for(url_func,token=token,_external=True)}
+
+<p style="color: bisque;">If you did not make this request then simply ignore this email, no changes will be made</p>
+"""
+    mail.send(msg)

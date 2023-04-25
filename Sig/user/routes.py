@@ -1,6 +1,11 @@
 from Sig.user.models import User
 from flask import jsonify, request, Blueprint, session
-from Sig.utils import query_one_filtered, get_reset_token, verify_reset_token
+from Sig.utils import (
+    query_one_filtered,
+    get_reset_token,
+    verify_reset_token,
+    send_email,
+)
 from Sig import bcrypt, db
 
 
@@ -40,10 +45,11 @@ def register_user():
     user = User(
         user_name=user_name,
         email=email,
-        password=bcrypt.generate_password_hash(password).decode('utf-8'),
+        password=bcrypt.generate_password_hash(password).decode("utf-8"),
     )
     try:
         user.insert()
+        send_email(user, "activate_user")
     except Exception as e:
         return (
             jsonify(
@@ -70,6 +76,7 @@ def activate_user(token):
         try:
             user.update()
         except Exception as e:
+            print(e)
             return (
                 jsonify(
                     {
@@ -110,7 +117,7 @@ def login_user():
     if not (data and user_name_or_mail and password):
         return (
             jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
-            400
+            400,
         )
     try:
         user = query_one_filtered(User, user_name=user_name_or_mail)
@@ -127,7 +134,7 @@ def login_user():
                     401,
                 )
 
-            session["user"] = user.id
+            session["user"] = {"id": user.id, "permission": ["user"]}
             return (
                 jsonify(
                     {
@@ -138,7 +145,7 @@ def login_user():
                 ),
                 200,
             )
-        session["user"] = user.id
+        session["user"] = {"id": user.id, "permission": ["user"]}
         return (
             jsonify(
                 {
@@ -154,7 +161,7 @@ def login_user():
             jsonify(
                 {
                     "error": "Internal server error",
-                    "message": f"It's not you it's us",
+                    "message": "It's not you it's us",
                 }
             ),
             500,
@@ -167,9 +174,16 @@ def reset_request():
     email = str(data.get("email"))
     user = query_one_filtered(User, email)
     if user:
-        token = get_reset_token(user)
-        # send_reset_password_email(user,token)
-        return jsonify({"message": f"Reset password token sent to {email}"}), 200
+        send_email(user, "reset_token")
+
+        return (
+            jsonify(
+                {
+                    "message": f"Reset password token will be sent to {email} if they exist"
+                }
+            ),
+            200,
+        )
 
 
 @user.route("/reset_password/<string:token>", methods=["POST"])
@@ -209,7 +223,7 @@ def reset_token(token):
     return jsonify({"error": "Invalid token"}), 400
 
 
-@user.route("/logout", methods=["GET","POST"])
+@user.route("/logout", methods=["GET", "POST"])
 def logout_user():
     session.pop("user", None)
     return (
