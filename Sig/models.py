@@ -1,10 +1,20 @@
 from Sig import db
 from uuid import uuid4
 from datetime import datetime
+import enum
 
 
 def get_uuid():
     return uuid4().hex
+
+class Roles(enum.Enum):
+    USER = ('User')
+    PROVIDER = ('User','Provider')
+    REGISTRAR = ('User','Registrar')
+
+    @staticmethod
+    def fetch_names():
+        return [c.value for c in Roles]
 
 
 class User(db.Model):
@@ -17,12 +27,14 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)
     api_key = db.Column(db.String(160), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
+    roles=db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    def __init__(self, user_name, email, password, api_key=None):
+    def __init__(self, user_name, email, password,roles=Roles.USER, api_key=None):
         self.user_name = user_name
         self.email = email
         self.password = password
+        self.roles=roles
         self.api_key = api_key
 
     def __repr__(self):

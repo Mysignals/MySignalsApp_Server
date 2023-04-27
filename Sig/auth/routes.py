@@ -1,4 +1,4 @@
-from Sig.user.models import User
+from Sig.models import User,Roles
 from flask import jsonify, request, Blueprint, session
 from Sig.utils import (
     query_one_filtered,
@@ -10,10 +10,10 @@ from Sig import bcrypt, db
 import sys
 
 
-user = Blueprint("user", __name__, url_prefix="/users")
+auth = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-@user.route("/register", methods=["POST"])
+@auth.route("/register", methods=["POST"])
 def register_user():
     data = request.get_json()
     user_name = str(data.get("user_name"))
@@ -48,14 +48,13 @@ def register_user():
     user = User(
         user_name=user_name,
         email=email,
-        password=bcrypt.generate_password_hash(password).decode("utf-8"),
+        password=bcrypt.generate_password_hash(password).decode("utf-8")
     )
     try:
-        if user.insert() and send_email(user, "user.activate_user"):
-            pass
-        else:
-            user.delete()
+        user.insert() 
+        send_email(user, "auth.activate_user")
     except Exception as e:
+        user.delete()
         return (
             jsonify(
                 {
@@ -73,7 +72,7 @@ def register_user():
     )
 
 
-@user.route("/activate/<string:token>")
+@auth.route("/activate/<string:token>")
 def activate_user(token):
     user = verify_reset_token(User, token)
     if user:
@@ -112,7 +111,7 @@ def activate_user(token):
     )
 
 
-@user.route("/login", methods=["POST"])
+@auth.route("/login", methods=["POST"])
 def login_user():
     data = request.get_json()
     user_name_or_mail = str(data.get("user_name_or_mail"))
@@ -138,26 +137,26 @@ def login_user():
                     401,
                 )
 
-            session["user"] = {"id": user.id, "permission": ["user"]}
+            session["user"] = {"id": user.id, "permission": user.roles.value}
             return (
                 jsonify(
                     {
                         "message": "Success",
                         "user_name": user.user_name,
                         "is_active": user.is_active,
-                        "permission": ["user"],
+                        "permission": user.roles.value,
                     },
                 ),
                 200,
             )
-        session["user"] = {"id": user.id, "permission": ["user"]}
+        session["user"] = {"id": user.id, "permission": user.roles.value}
         return (
             jsonify(
                 {
                     "message": "Success",
                     "user_name": user.user_name,
                     "is_active": user.is_active,
-                    "permission": ["user"],
+                    "permission": user.roles.value,
                 },
             ),
             200,
@@ -174,7 +173,7 @@ def login_user():
         )
 
 
-@user.route("/reset_password", methods=["POST"])
+@auth.route("/reset_password", methods=["POST"])
 def reset_request():
     data = request.get_json()
     email = str(data.get("email"))
@@ -185,7 +184,7 @@ def reset_request():
         )
     user = query_one_filtered(User, email=email)
     if user:
-        send_email(user, "user.reset_token")
+        send_email(user, "auth.reset_token")
 
         return (
             jsonify(
@@ -203,7 +202,7 @@ def reset_request():
     )
 
 
-@user.route("/reset_password/<string:token>", methods=["POST"])
+@auth.route("/reset_password/<string:token>", methods=["POST"])
 def reset_token(token):
     data = request.get_json()
     password = data.get("password")
@@ -240,7 +239,7 @@ def reset_token(token):
     return jsonify({"error": "Invalid token"}), 400
 
 
-@user.route("/logout", methods=["GET", "POST"])
+@auth.route("/logout", methods=["GET", "POST"])
 def logout_user():
     session.pop("user", None)
     return (
@@ -251,3 +250,18 @@ def logout_user():
         ),
         200,
     )
+@auth.route("/@me")
+def see_sess():
+    user = session.get("user")
+
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user = query_one_filtered(User,id=user["id"])
+    return jsonify({
+        "email": user.email,
+        "user_name": user.user_name,
+        "is_active":user.is_active,
+        "roles": user.roles.value,
+        "created_on": user.date_registered,
+    }) 
