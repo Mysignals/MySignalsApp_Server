@@ -50,13 +50,13 @@ def register_user():
         email=email,
         password=bcrypt.generate_password_hash(password).decode("utf-8"),
     )
-    try:
-        send_email(user, "user.activate_user")
-        user.insert()
-        
+    try:     
+        if user.insert() and send_email(user, "user.activate_user"):
+            pass
+        else:
+            user.delete()    
     except Exception as e:
-        print(e)
-        print(sys.exc_info())
+        
         return (
             jsonify(
                 {
@@ -77,6 +77,7 @@ def register_user():
 @user.route("/activate/<string:token>")
 def activate_user(token):
     user = verify_reset_token(User, token)
+    print(user)
     if user:
         user.is_active = True
         try:
