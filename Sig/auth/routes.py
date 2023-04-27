@@ -1,4 +1,4 @@
-from Sig.models import User,Roles
+from Sig.models import User, Roles
 from flask import jsonify, request, Blueprint, session
 from Sig.utils import (
     query_one_filtered,
@@ -16,18 +16,22 @@ auth = Blueprint("auth", __name__, url_prefix="/auth")
 @auth.route("/register", methods=["POST"])
 def register_user():
     data = request.get_json()
-    user_name = str(data.get("user_name"))
-    email = str(data.get("email"))
+    user_name = data.get("user_name")
+    email = data.get("email")
     password = data.get("password")
     confirm_password = data.get("confirm_password")
 
-    if (not (data and user_name and email and password and confirm_password)) or len(password)<8:
+    if (not (data and user_name and email and password and confirm_password)) or len(
+        password
+    ) < 8:
         return (
-            jsonify({"error": "Bad Request", "message": "Did you fill all fields properly?"}),
+            jsonify(
+                {"error": "Bad Request", "message": "Did you fill all fields properly?"}
+            ),
             400,
         )
 
-    if (password != confirm_password):
+    if password != confirm_password:
         return (
             jsonify({"error": "Bad Request", "message": "Passwords do not match"}),
             400,
@@ -48,10 +52,10 @@ def register_user():
     user = User(
         user_name=user_name,
         email=email,
-        password=bcrypt.generate_password_hash(password).decode("utf-8")
+        password=bcrypt.generate_password_hash(password).decode("utf-8"),
     )
     try:
-        user.insert() 
+        user.insert()
         send_email(user, "auth.activate_user")
     except Exception as e:
         user.delete()
@@ -114,10 +118,10 @@ def activate_user(token):
 @auth.route("/login", methods=["POST"])
 def login_user():
     data = request.get_json()
-    user_name_or_mail = str(data.get("user_name_or_mail"))
+    user_name_or_mail = data.get("user_name_or_mail")
     password = data.get("password")
 
-    if not (data and user_name_or_mail and password):
+    if not (user_name_or_mail and password):
         return (
             jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
             400,
@@ -176,7 +180,7 @@ def login_user():
 @auth.route("/reset_password", methods=["POST"])
 def reset_request():
     data = request.get_json()
-    email = str(data.get("email"))
+    email = data.get("email")
     if not email:
         return (
             jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
@@ -250,18 +254,25 @@ def logout_user():
         ),
         200,
     )
+
+
 @auth.route("/@me")
 def see_sess():
     user = session.get("user")
 
     if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    user = query_one_filtered(User,id=user["id"])
-    return jsonify({
-        "email": user.email,
-        "user_name": user.user_name,
-        "is_active":user.is_active,
-        "roles": user.roles.value,
-        "created_on": user.date_registered,
-    }) 
+        return (
+            jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
+            401,
+        )
+
+    user = query_one_filtered(User, id=user["id"])
+    return jsonify(
+        {
+            "email": user.email,
+            "user_name": user.user_name,
+            "is_active": user.is_active,
+            "roles": user.roles.value,
+            "created_on": user.date_registered,
+        }
+    )

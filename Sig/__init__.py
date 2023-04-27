@@ -16,7 +16,6 @@ sess = Session()
 mail = Mail()
 
 
-
 def create_app(config_class=App_Config):
     """
     Create a new instance of the app with the given configuration.
@@ -38,13 +37,15 @@ def create_app(config_class=App_Config):
     bcrypt.init_app(app)
     # Initialize Flask-Session
     sess.init_app(app)
-    migrate=Migrate(app,db)
+    migrate = Migrate(app, db)
 
     from Sig.main.routes import main
     from Sig.auth.routes import auth
+    from Sig.errors.handlers import error
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
+    app.register_blueprint(error)
 
     with app.app_context():
         db.create_all()
