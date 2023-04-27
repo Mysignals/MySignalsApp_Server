@@ -1,4 +1,4 @@
-from Sig import db,mail
+from Sig import db, mail
 from flask import current_app, url_for
 from flask_mail import Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -45,12 +45,13 @@ def verify_reset_token(user, token):
     s = Serializer(current_app.config["SECRET_KEY"])
     try:
         user_id = s.loads(token)["user_id"]
-    except:  
+    except:
         return None
     return query_one_filtered(user, id=user_id)
 
 
 # Flask Mail helpers
+
 
 def send_email(user, url_func):
     token = get_reset_token(user)
@@ -63,4 +64,4 @@ def send_email(user, url_func):
 <p style="color: bisque;">If you did not make this request then simply ignore this email, no changes will be made</p>
 """
     # mail.send(msg)
-    print(url_for(url_func,token=token,_external=True))
+    print(url_for(url_func, token=token, _external=True))

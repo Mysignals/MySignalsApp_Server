@@ -21,19 +21,19 @@ def register_user():
     password = data.get("password")
     confirm_password = data.get("confirm_password")
 
-    if not (data and user_name and email and password and confirm_password):
+    if (not (data and user_name and email and password and confirm_password)) or len(password)<8:
         return (
-            jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
+            jsonify({"error": "Bad Request", "message": "Did you fill all fields properly?"}),
             400,
         )
 
-    if password != confirm_password:
+    if (password != confirm_password):
         return (
             jsonify({"error": "Bad Request", "message": "Passwords do not match"}),
             400,
         )
 
-    user_name=user_name.lower()
+    user_name = user_name.lower()
 
     if query_one_filtered(User, user_name=user_name) or query_one_filtered(
         User, email=email
@@ -50,13 +50,12 @@ def register_user():
         email=email,
         password=bcrypt.generate_password_hash(password).decode("utf-8"),
     )
-    try:     
+    try:
         if user.insert() and send_email(user, "user.activate_user"):
             pass
         else:
-            user.delete()    
+            user.delete()
     except Exception as e:
-        
         return (
             jsonify(
                 {
@@ -77,13 +76,11 @@ def register_user():
 @user.route("/activate/<string:token>")
 def activate_user(token):
     user = verify_reset_token(User, token)
-    print(user)
     if user:
         user.is_active = True
         try:
             user.update()
         except Exception as e:
-            print(e)
             return (
                 jsonify(
                     {
@@ -148,6 +145,7 @@ def login_user():
                         "message": "Success",
                         "user_name": user.user_name,
                         "is_active": user.is_active,
+                        "permission": ["user"],
                     },
                 ),
                 200,
@@ -159,6 +157,7 @@ def login_user():
                     "message": "Success",
                     "user_name": user.user_name,
                     "is_active": user.is_active,
+                    "permission": ["user"],
                 },
             ),
             200,
@@ -179,9 +178,14 @@ def login_user():
 def reset_request():
     data = request.get_json()
     email = str(data.get("email"))
-    user = query_one_filtered(User, email)
+    if not email:
+        return (
+            jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
+            400,
+        )
+    user = query_one_filtered(User, email=email)
     if user:
-        send_email(user, "reset_token")
+        send_email(user, "user.reset_token")
 
         return (
             jsonify(
@@ -191,14 +195,20 @@ def reset_request():
             ),
             200,
         )
+    return (
+        jsonify(
+            {"message": f"Reset password token will be sent to {email} if they exist"}
+        ),
+        404,
+    )
 
 
 @user.route("/reset_password/<string:token>", methods=["POST"])
 def reset_token(token):
     data = request.get_json()
     password = data.get("password")
-    password_confirm = data.get("password_confirm")
-    if not password or not password_confirm:
+    confirm_password = data.get("confirm_password")
+    if not password or not confirm_password:
         return (
             jsonify({"error": "Bad Request", "message": "Did you provide all fields?"}),
             400,
