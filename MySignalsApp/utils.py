@@ -51,8 +51,6 @@ def verify_reset_token(user, token):
 
 
 # Flask Mail helpers
-
-
 def send_email(user, url_func):
     token = get_reset_token(user)
     msg = Message(
@@ -65,3 +63,25 @@ def send_email(user, url_func):
 """
     # mail.send(msg)
     print(url_for(url_func, token=token, _external=True))
+
+
+# session helpers
+
+def has_permission(session,permission):
+    user=session.get("user")
+
+    if not user:
+        return (
+            jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
+            401,
+        )
+
+    if permission not in user.get("permission"):
+        return (
+            jsonify({"error": "Unauthorized", "message": "You are not authorized to access this"}),
+            401,
+        )
+
+    return user.get("id")
+
+    

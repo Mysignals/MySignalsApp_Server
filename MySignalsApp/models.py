@@ -30,6 +30,7 @@ class User(db.Model):
     email = db.Column(db.String(345), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
     api_key = db.Column(db.String(160), nullable=True)
+    wallet= db.Column(db.String(100),nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -71,6 +72,9 @@ class Signal(db.Model):
         self.status=status
         self.provider=provider
 
+    def __repr__(self):
+            return f"signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.provider.user_name}))"
+
     def insert(self):
         db.session.add(self)
         db.session.commit()
@@ -82,5 +86,13 @@ class Signal(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def __repr__(self):
-        return f"signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.provider.user_name}))"
+    def format(self):
+        return {
+            "id": self.id,
+            "signal": self.signal,
+            "status": self.status,
+            "date_created": self.date_created,
+            "provider": self.provider.wallet
+            }
+
+    
