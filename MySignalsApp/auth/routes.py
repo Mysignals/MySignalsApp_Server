@@ -267,7 +267,8 @@ def see_sess():
 
     user = query_one_filtered(User, id=user["id"])
     return jsonify(
-        {   "message": "Success",
+        {
+            "message": "Success",
             "email": user.email,
             "user_name": user.user_name,
             "is_active": user.is_active,

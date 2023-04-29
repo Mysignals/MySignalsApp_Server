@@ -41,8 +41,8 @@ def create_app(config_class=App_Config):
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
+    from MySignalsApp.provider.routes import provider
     from MySignalsApp.errors.handlers import error
-    from MysignalsApp.provider.routes import provider
 
     app.register_blueprint(main)
     app.register_blueprint(auth)

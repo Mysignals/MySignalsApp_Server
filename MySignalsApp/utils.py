@@ -67,8 +67,9 @@ def send_email(user, url_func):
 
 # session helpers
 
-def has_permission(session,permission):
-    user=session.get("user")
+
+def has_permission(session, permission):
+    user = session.get("user")
 
     if not user:
         return (
@@ -78,10 +79,13 @@ def has_permission(session,permission):
 
     if permission not in user.get("permission"):
         return (
-            jsonify({"error": "Unauthorized", "message": "You are not authorized to access this"}),
+            jsonify(
+                {
+                    "error": "Unauthorized",
+                    "message": "You are not authorized to access this",
+                }
+            ),
             401,
         )
 
     return user.get("id")
-
-    
