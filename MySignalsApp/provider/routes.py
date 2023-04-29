@@ -1,6 +1,7 @@
 from flask import Blueprint,jsonify,request,session
 from MySignalsApp.models import User,Signal
 from MySignalsApp.utils import query_all_filtered, has_permission
+from binance.spot import Spot
 
 provider=Blueprint("provider", __name__,url_prefix="/provider")
 
