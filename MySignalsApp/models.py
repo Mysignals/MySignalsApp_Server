@@ -1,4 +1,4 @@
-from Sig import db
+from MySignalsApp import db
 from uuid import uuid4
 from datetime import datetime
 import enum

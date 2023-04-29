@@ -1,13 +1,12 @@
-from Sig.models import User, Roles
+from MySignalsApp.models import User, Roles
 from flask import jsonify, request, Blueprint, session
-from Sig.utils import (
+from MySignalsApp.utils import (
     query_one_filtered,
     get_reset_token,
     verify_reset_token,
     send_email,
 )
-from Sig import bcrypt, db
-import sys
+from MySignalsApp import bcrypt, db
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")

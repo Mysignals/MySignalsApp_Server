@@ -1,4 +1,4 @@
-from Sig import create_app
+from MySignalsApp import create_app
 
 app = create_app()
 

@@ -1,4 +1,4 @@
-from Sig import db, mail
+from MySignalsApp import db, mail
 from flask import current_app, url_for
 from flask_mail import Message
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer

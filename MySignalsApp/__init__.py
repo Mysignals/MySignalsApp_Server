@@ -6,7 +6,7 @@ from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-from Sig.config import App_Config
+from MySignalsApp.config import App_Config
 
 db = SQLAlchemy()
 
@@ -39,9 +39,9 @@ def create_app(config_class=App_Config):
     sess.init_app(app)
     migrate = Migrate(app, db)
 
-    from Sig.main.routes import main
-    from Sig.auth.routes import auth
-    from Sig.errors.handlers import error
+    from MySignalsApp.main.routes import main
+    from MySignalsApp.auth.routes import auth
+    from MySignalsApp.errors.handlers import error
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
