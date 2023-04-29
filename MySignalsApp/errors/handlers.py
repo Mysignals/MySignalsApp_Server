@@ -24,10 +24,7 @@ def cant_process(error):
 
 @error.app_errorhandler(400)
 def bad_request(error):
-    return (
-        jsonify({"error": error.name, "message": error.description}),
-        400,
-    )
+    return jsonify({"error": error.name, "message": error.description}), 400
 
 
 @error.app_errorhandler(500)

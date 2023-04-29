@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp.utils import query_all_filtered, has_permission
+from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered
 from binance.spot import Spot
 
 
@@ -12,18 +12,36 @@ spot_client = Spot()
 @provider.route("/signals")
 def get_signals():
     user_id = has_permission(session, "Provider")
-    signals = query_all_filtered(Signal, provider=user_id)
+    try:
+        is_active = (query_one_filtered(User, id=user_id)).is_active
+        # if not is_active:
+        #     return (
+        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
+        #         401,
+        #     )
 
-    return (
-        jsonify(
-            {
-                "message": "Success",
-                "signals": [signal.format() for signal in signals],
-                "total": len(signals),
-            }
-        ),
-        200,
-    )
+        signals = query_all_filtered(Signal, provider=user_id)
+
+        return (
+            jsonify(
+                {
+                    "message": "Success",
+                    "signals": [signal.format() for signal in signals],
+                    "total": len(signals),
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
 
 
 @provider.route("/spot/pairs")
@@ -54,5 +72,44 @@ def get_futures_pairs():
     except Exception as e:
         return (
             jsonify({"message": "error accessing binance", "error": e.get("msg")}),
+            500,
+        )
+
+
+@provider.route("/update_wallet", methods=["POST"])
+def change_wallet():
+    user_id = has_permission(session, "Provider")
+    data = request.get_json()
+    wallet = data.get("wallet")
+    if not wallet or len(wallet) != 42:
+        return (
+            jsonify(
+                {
+                    "error": "Bad Request",
+                    "message": "Did you provide all fields correctly?",
+                }
+            ),
+            400,
+        )
+
+    try:
+        user = query_one_filtered(User, id=user_id)
+        # if not user.is_active:
+        #     return (
+        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
+        #         401,
+        #     )
+        user.wallet = wallet
+        user.update()
+
+        return jsonify({"message": "Password changed"}), 200
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
             500,
         )
