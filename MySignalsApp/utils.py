@@ -1,6 +1,7 @@
 from MySignalsApp import db, mail
-from flask import current_app, url_for
+from flask import current_app, url_for, jsonify
 from flask_mail import Message
+from MySignalsApp.errors.handlers import UtilError
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
@@ -72,20 +73,9 @@ def has_permission(session, permission):
     user = session.get("user")
 
     if not user:
-        return (
-            jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
-            401,
-        )
+        raise UtilError("Unauthorized", 401, "You are not logged in")
 
     if permission not in user.get("permission"):
-        return (
-            jsonify(
-                {
-                    "error": "Unauthorized",
-                    "message": "You are not authorized to access this",
-                }
-            ),
-            401,
-        )
+        raise UtilError("Unauthorized", 401, "You are not authorized to access this")
 
     return user.get("id")

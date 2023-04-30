@@ -2,9 +2,10 @@ from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered
 from binance.spot import Spot
+from binance.error import ClientError
 from dotenv import load_dotenv
 import os
-
+from time import sleep
 
 
 load_dotenv(".env")
@@ -12,10 +13,15 @@ load_dotenv(".env")
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
-key=os.environ.get("SKEY")
-sec=os.environ.get("SSEC")
+spot_key = os.environ.get("SKEY")
+spot_sec = os.environ.get("SSEC")
 
-spot_client = Spot(api_key=key,api_secret=sec,base_url='https://testnet.binance.vision')
+f_key = os.environ.get("FKEY")
+f_sec = os.environ.get("FSEC")
+
+spot_client = Spot(
+    api_key=spot_key, api_secret=spot_sec, base_url="https://testnet.binance.vision"
+)
 
 
 @provider.route("/signals")
@@ -63,9 +69,15 @@ def get_spot_pairs():
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
     except Exception as e:
+        print(e)
         return (
-            jsonify({"message": "error accessing binance", "error": e.get("msg")}),
-            500,
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
         )
 
 
@@ -79,9 +91,15 @@ def get_futures_pairs():
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
     except Exception as e:
+        print(e)
         return (
-            jsonify({"message": "error accessing binance", "error": e.get("msg")}),
-            500,
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
         )
 
 
@@ -129,9 +147,118 @@ def change_wallet():
 def get_time():
     try:
         return spot_client.account()
+    except ClientError as e:
+        return (
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
+        )
+
+
+@provider.route("/trade")
+def place_trade():
+    params = {
+        "symbol": "BNBUSDT",
+        "side": "BUY",
+        "type": "LIMIT",
+        "timeInForce": "GTC",
+        "quantity": "12",
+        "price": "339",
+    }
+
+    tpparam = {
+        "symbol": "BNBUSDT",
+        "side": "SELL",
+        "type": "TAKE_PROFIT_LIMIT",
+        "stopPrice": "341",
+        "timeInForce": "GTC",
+        "quantity": "12",
+    }
+
+    try:
+        # trade= spot_client.new_order(**params)
+        # print(trade)
+        # sleep(1)
+        trade2 = spot_client.new_order(**tpparam)
+        print(trade2)
+        return (
+            jsonify({"message": "success", "signal": {**params, "stopPrice": "341"}}),
+            200,
+        )
+    except ClientError as e:
+        return (
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
+        )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
+
+
+@provider.route("/spot/new", methods=["POST"])
+def new_spot_trade():
+    user_id = has_permission(session, "Provider")
+
+    data = request.get_json()
+    symbol = data.get("symbol")
+    side = data.get("side")
+    quantity = data.get("quantity")
+    price = data.get("price")
+    sl = data.get("sl")
+    tp = data.get("tp")
+
+    if not (symbol and side and quantity and price and sl and tp):
+        return (
+            jsonify(
+                {
+                    "error": "Bad Request",
+                    "message": "Did you provide all fields correctly?",
+                }
+            ),
+            400,
+        )
+    signal_data = dict(
+        symbol=symbol,
+        side=side,
+        quantity=quantity,
+        price=price,
+        stops=dict(sl=sl, tp=tp),
+    )
+    try:
+        user = query_one_filtered(User, id=user_id)
+        # if not user.is_active:
+        #     return (
+        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
+        #         401,
+        #     )
+
+        signal = Signal(signal_data, True, user_id)
+        signal.insert()
+        return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
         print(e)
-        return jsonify({
-            "error":e.error_code,
-            "message":e.error_message,
-        }),e.status_code
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )

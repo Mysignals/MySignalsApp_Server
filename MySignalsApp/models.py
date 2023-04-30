@@ -28,19 +28,21 @@ class User(db.Model):
     email = db.Column(db.String(345), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
     api_key = db.Column(db.String(100), nullable=True)
-    api_secret=db.Column(db.String(100),nullable=True)
+    api_secret = db.Column(db.String(100), nullable=True)
     wallet = db.Column(db.String(100), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     signals = db.Relationship("Signal", backref="user", lazy=True)
 
-    def __init__(self, user_name, email, password, roles=Roles.USER, api_key=None):
+    def __init__(self, user_name, email, password, roles=Roles.USER, api_key=None,api_secret=None,wallet=""):
         self.user_name = user_name
         self.email = email
         self.password = password
         self.roles = roles
         self.api_key = api_key
+        self.api_secret=api_secret
+        self.wallet=wallet
 
     def __repr__(self):
         return f"user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_registered({self.date_registered}))"
@@ -92,6 +94,6 @@ class Signal(db.Model):
             "signal": self.signal,
             "status": self.status,
             "is_spot": self.is_spot,
-            "provider": self.provider.wallet,
+            "provider": self.user.wallet,
             "date_created": self.date_created,
         }

@@ -221,25 +221,25 @@ def reset_token(token):
             jsonify({"error": "Bad Request", "message": "Passwords do not match"}),
             400,
         )
-    user = verify_reset_token(User, token)
-    if user:
-        try:
+    try:
+        user = verify_reset_token(User, token)
+        if user:
             user.password = bcrypt.generate_password_hash(password)
             user.update()
             session.pop("user", None)
             return jsonify({"message": "Password changed"}), 200
-        except Exception as e:
-            return (
-                jsonify(
-                    {
-                        "error": "Internal server error",
-                        "message": "It's not you it's us",
-                    }
-                ),
-                500,
-            )
 
-    return jsonify({"error": "Invalid token"}), 400
+        return jsonify({"error": "Unauthorized", "message": "Invalid token"}), 400
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
 
 
 @auth.route("/logout", methods=["GET", "POST"])

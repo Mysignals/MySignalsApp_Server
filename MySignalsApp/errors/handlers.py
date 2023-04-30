@@ -3,6 +3,18 @@ from flask import Blueprint, jsonify
 error = Blueprint("error", __name__)
 
 
+class UtilError(Exception):
+    def __init__(self, error, code, message):
+        self.error = error
+        self.code = code
+        self.message = message
+
+
+@error.app_errorhandler(UtilError)
+def resource_not_found(err):
+    return jsonify({"error": err.error, "message": err.message}), err.code
+
+
 @error.app_errorhandler(404)
 def resource_not_found(error):
     return jsonify({"error": error.name, "message": error.description}), 404
