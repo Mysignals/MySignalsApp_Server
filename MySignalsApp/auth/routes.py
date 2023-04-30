@@ -17,15 +17,22 @@ def register_user():
     data = request.get_json()
     user_name = data.get("user_name")
     email = data.get("email")
-    api_key=data.get("api_key")
-    api_secret=data.get("api_secret")
+    api_key = data.get("api_key")
+    api_secret = data.get("api_secret")
     password = data.get("password")
     confirm_password = data.get("confirm_password")
-    
 
-    if (not (data and user_name and email and password and confirm_password and api_key and api_secret)) or len(
-        password
-    ) < 8:
+    if (
+        not (
+            data
+            and user_name
+            and email
+            and password
+            and confirm_password
+            and api_key
+            and api_secret
+        )
+    ) or len(password) < 8:
         return (
             jsonify(
                 {"error": "Bad Request", "message": "Did you fill all fields properly?"}
@@ -56,7 +63,7 @@ def register_user():
         email=email,
         password=bcrypt.generate_password_hash(password).decode("utf-8"),
         api_key=api_key,
-        api_secret=api_secret
+        api_secret=api_secret,
     )
     try:
         user.insert()
@@ -283,28 +290,28 @@ def see_sess():
         )
     except Exception as e:
         return (
-                jsonify(
-                    {
-                        "error": "Internal server error",
-                        "message": "It's not you it's us",
-                    }
-                ),
-                500,
-            )
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
 
-@auth.route("/update_keys",methods=["POST"])
+
+@auth.route("/update_keys", methods=["POST"])
 def update_keys():
-    user_id=session.get("user")
+    user_id = session.get("user")
     if not user_id:
         return (
             jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
             401,
         )
 
-
-    data=request.get_json()
-    api_key=data.get("api_key")
-    api_secret=data.get("api_secret")
+    data = request.get_json()
+    api_key = data.get("api_key")
+    api_secret = data.get("api_secret")
 
     if not (api_key and api_secret):
         return (
@@ -312,21 +319,25 @@ def update_keys():
             400,
         )
     try:
-        user= query_one_filtered(User,id=user_id)
+        user = query_one_filtered(User, id=user_id)
         if not user:
             return (
-            jsonify({"error": "Resource not found", "message": "User does not exist"}),
-            404,
-        )
-    # TODO hash api key and secret
-        user.api_key=api_key
-        user.api_secret=api_secret
+                jsonify(
+                    {"error": "Resource not found", "message": "User does not exist"}
+                ),
+                404,
+            )
+        # TODO hash api key and secret
+        user.api_key = api_key
+        user.api_secret = api_secret
         user.update()
-        return jsonify({
-            "message":"success",
-            "user_name": user.user_name,
-            "is_active": user.is_active,
-        })
+        return jsonify(
+            {
+                "message": "success",
+                "user_name": user.user_name,
+                "is_active": user.is_active,
+            }
+        )
     except Exception as e:
         return (
             jsonify(
