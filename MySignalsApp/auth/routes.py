@@ -56,6 +56,12 @@ def register_user():
     try:
         user.insert()
         send_email(user, "auth.activate_user")
+        return (
+            jsonify(
+                {"message": "Success", "user_name": user.user_name, "email": user.email}
+            ),
+            200,
+        )
     except Exception as e:
         user.delete()
         return (
@@ -67,12 +73,6 @@ def register_user():
             ),
             500,
         )
-    return (
-        jsonify(
-            {"message": "Success", "user_name": user.user_name, "email": user.email}
-        ),
-        200,
-    )
 
 
 @auth.route("/activate/<string:token>")

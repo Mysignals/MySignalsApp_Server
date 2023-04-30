@@ -66,6 +66,8 @@ def get_spot_pairs():
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
         pairs = []
+        if not usdt_symbols:
+            return jsonify({"message": "success", "pairs": pairs}), 200
         for symbol in usdt_symbols:
             if symbol["symbol"][-4:] == "USDT":
                 pairs.append(symbol["symbol"])
@@ -87,6 +89,8 @@ def get_futures_pairs():
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["MARGIN"])["symbols"]
         pairs = []
+        if not usdt_symbols:
+            return jsonify({"message": "success", "pairs": pairs}), 200
         for symbol in usdt_symbols:
             if symbol["symbol"][-4:] == "USDT":
                 pairs.append(symbol["symbol"])
@@ -158,58 +162,6 @@ def get_time():
                 }
             ),
             e.status_code,
-        )
-
-
-@provider.route("/trade")
-def place_trade():
-    params = {
-        "symbol": "BNBUSDT",
-        "side": "BUY",
-        "type": "LIMIT",
-        "timeInForce": "GTC",
-        "quantity": "12",
-        "price": "339",
-    }
-
-    tpparam = {
-        "symbol": "BNBUSDT",
-        "side": "SELL",
-        "type": "TAKE_PROFIT_LIMIT",
-        "stopPrice": "341",
-        "timeInForce": "GTC",
-        "quantity": "12",
-    }
-
-    try:
-        # trade= spot_client.new_order(**params)
-        # print(trade)
-        # sleep(1)
-        trade2 = spot_client.new_order(**tpparam)
-        print(trade2)
-        return (
-            jsonify({"message": "success", "signal": {**params, "stopPrice": "341"}}),
-            200,
-        )
-    except ClientError as e:
-        return (
-            jsonify(
-                {
-                    "error": e.error_code,
-                    "message": e.error_message,
-                }
-            ),
-            e.status_code,
-        )
-    except Exception as e:
-        return (
-            jsonify(
-                {
-                    "error": "Internal server error",
-                    "message": "It's not you it's us",
-                }
-            ),
-            500,
         )
 
 
