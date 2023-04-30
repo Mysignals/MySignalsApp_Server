@@ -268,3 +268,53 @@ def new_spot_trade():
             ),
             500,
         )
+
+
+@provider.route("/delete/<int:signal_id>", methods=["POST"])
+def delete_trade(signal_id):
+    user_id = has_permission(session, "Provider")
+    try:
+        user = query_one_filtered(User, id=user_id)
+        if not user.is_active:
+            return (
+                jsonify(
+                    {"error": "Unauthorized", "message": "Your account is not active"}
+                ),
+                401,
+            )
+        signal = query_one_filtered(Signal, id=signal_id)
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "The signal with the provided Id does not exist",
+                    }
+                ),
+                404,
+            )
+
+        if signal.provider != user_id:
+            return (
+                jsonify(
+                    {
+                        "error": "Unauthorized",
+                        "message": "You do not have permission to delete this Signal",
+                    }
+                ),
+                401,
+            )
+
+        signal.delete()
+        return jsonify({"message": "success", "signal_id": signal.id})
+    except Exception as e:
+        print(e)
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
