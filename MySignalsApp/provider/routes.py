@@ -71,7 +71,6 @@ def get_spot_pairs():
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
     except Exception as e:
-        print(e)
         return (
             jsonify(
                 {
@@ -93,7 +92,6 @@ def get_futures_pairs():
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
     except Exception as e:
-        print(e)
         return (
             jsonify(
                 {
@@ -258,7 +256,6 @@ def new_spot_trade():
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
-        print(e)
         return (
             jsonify(
                 {
@@ -308,7 +305,6 @@ def delete_trade(signal_id):
         signal.delete()
         return jsonify({"message": "success", "signal_id": signal.id})
     except Exception as e:
-        print(e)
         return (
             jsonify(
                 {

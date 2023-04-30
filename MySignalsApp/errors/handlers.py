@@ -22,7 +22,6 @@ def resource_not_found(error):
 
 @error.app_errorhandler(405)
 def method_not_allowed(error):
-    print(error)
     return (
         jsonify({"error": error.name, "message": error.description}),
         405,
