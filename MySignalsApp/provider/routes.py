@@ -2,11 +2,20 @@ from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered
 from binance.spot import Spot
+from dotenv import load_dotenv
+import os
+
+
+
+load_dotenv(".env")
 
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
-spot_client = Spot()
+key=os.environ.get("SKEY")
+sec=os.environ.get("SSEC")
+
+spot_client = Spot(api_key=key,api_secret=sec,base_url='https://testnet.binance.vision')
 
 
 @provider.route("/signals")
@@ -113,3 +122,16 @@ def change_wallet():
             ),
             500,
         )
+
+
+# test server is connected
+@provider.route("/time")
+def get_time():
+    try:
+        return spot_client.account()
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error":e.error_code,
+            "message":e.error_message,
+        }),e.status_code
