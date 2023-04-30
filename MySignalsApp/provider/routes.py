@@ -29,11 +29,13 @@ def get_signals():
     user_id = has_permission(session, "Provider")
     try:
         is_active = (query_one_filtered(User, id=user_id)).is_active
-        # if not is_active:
-        #     return (
-        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
-        #         401,
-        #     )
+        if not is_active:
+            return (
+                jsonify(
+                    {"error": "Unauthorized", "message": "Your account is not active"}
+                ),
+                401,
+            )
 
         signals = query_all_filtered(Signal, provider=user_id)
 
@@ -121,11 +123,13 @@ def change_wallet():
 
     try:
         user = query_one_filtered(User, id=user_id)
-        # if not user.is_active:
-        #     return (
-        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
-        #         401,
-        #     )
+        if not user.is_active:
+            return (
+                jsonify(
+                    {"error": "Unauthorized", "message": "Your account is not active"}
+                ),
+                401,
+            )
         user.wallet = wallet
         user.update()
 
@@ -242,11 +246,13 @@ def new_spot_trade():
     )
     try:
         user = query_one_filtered(User, id=user_id)
-        # if not user.is_active:
-        #     return (
-        #         jsonify({"error": "Unauthorized", "message": "Your account is not active"}),
-        #         401,
-        #     )
+        if not user.is_active:
+            return (
+                jsonify(
+                    {"error": "Unauthorized", "message": "Your account is not active"}
+                ),
+                401,
+            )
 
         signal = Signal(signal_data, True, user_id)
         signal.insert()

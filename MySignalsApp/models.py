@@ -35,14 +35,23 @@ class User(db.Model):
     date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     signals = db.Relationship("Signal", backref="user", lazy=True)
 
-    def __init__(self, user_name, email, password, roles=Roles.USER, api_key=None,api_secret=None,wallet=""):
+    def __init__(
+        self,
+        user_name,
+        email,
+        password,
+        roles=Roles.USER,
+        api_key=None,
+        api_secret=None,
+        wallet="",
+    ):
         self.user_name = user_name
         self.email = email
         self.password = password
         self.roles = roles
         self.api_key = api_key
-        self.api_secret=api_secret
-        self.wallet=wallet
+        self.api_secret = api_secret
+        self.wallet = wallet
 
     def __repr__(self):
         return f"user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_registered({self.date_registered}))"
