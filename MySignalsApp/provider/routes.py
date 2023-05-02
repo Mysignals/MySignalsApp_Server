@@ -16,9 +16,6 @@ load_dotenv(".env")
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
-spot_client = Spot(
-    api_key=spot_key, api_secret=spot_sec, base_url="https://testnet.binance.vision"
-)
 
 
 @provider.route("/signals")
