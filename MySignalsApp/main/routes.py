@@ -90,7 +90,7 @@ def place_spot_trade(signal_id):
     )
     # TODO check hash that correct signal.provider was paid
     signal = ""
-    uuid = get_uuid()
+    trade_uuid = get_uuid()
     try:
         signal = query_one_filtered(Signal, id=signal_id)
         if not signal:
@@ -122,7 +122,7 @@ def place_spot_trade(signal_id):
             "timeInForce": "GTC",
             "quantity": signal["quantity"],
             "price": signal["price"],
-            "newClientOrderId": uuid,
+            "newClientOrderId": trade_uuid,
         }
         stops = signal["stops"]
 
@@ -138,6 +138,7 @@ def place_spot_trade(signal_id):
         trade = spot_client.new_order(**params)
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_param)
+
         return (
             jsonify(
                 {
@@ -147,8 +148,10 @@ def place_spot_trade(signal_id):
             ),
             200,
         )
+
     except ClientError as e:
-        spot_client.cancel_order(signal["symbol"], origClientOrderId=uuid)
+        if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
+            spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
         print(e)
         return (
             jsonify(
