@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered,is_active
-from binance.spot import Spot
+from MySignalsApp.utils import (
+    query_all_filtered,
+    has_permission,
+    query_one_filtered,
+    is_active,
+)
 from binance.error import ClientError
 from dotenv import load_dotenv
-import os
 from time import sleep
 
 
@@ -12,12 +15,6 @@ load_dotenv(".env")
 
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
-
-spot_key = os.environ.get("SKEY")
-spot_sec = os.environ.get("SSEC")
-
-f_key = os.environ.get("FKEY")
-f_sec = os.environ.get("FSEC")
 
 spot_client = Spot(
     api_key=spot_key, api_secret=spot_sec, base_url="https://testnet.binance.vision"
@@ -27,9 +24,8 @@ spot_client = Spot(
 @provider.route("/signals")
 def get_signals():
     user_id = has_permission(session, "Provider")
-    user=is_active(User, user_id)
+    user = is_active(User, user_id)
     try:
-
         signals = query_all_filtered(Signal, provider=user_id)
 
         return (
@@ -56,8 +52,8 @@ def get_signals():
 
 @provider.route("/spot/pairs")
 def get_spot_pairs():
-    user_id=has_permission(session, "Provider")
-    user=is_active(User, user_id)
+    user_id = has_permission(session, "Provider")
+    user = is_active(User, user_id)
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
         pairs = []
@@ -81,8 +77,8 @@ def get_spot_pairs():
 
 @provider.route("/futures/pairs")
 def get_futures_pairs():
-    user_id=has_permission(session, "Provider")
-    user=is_active(User, user_id)
+    user_id = has_permission(session, "Provider")
+    user = is_active(User, user_id)
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["MARGIN"])["symbols"]
         pairs = []
@@ -119,7 +115,7 @@ def change_wallet():
             ),
             400,
         )
-    user=is_active(User, user_id)
+    user = is_active(User, user_id)
     try:
         user.wallet = wallet
         user.update()
@@ -183,9 +179,8 @@ def new_spot_trade():
         price=price,
         stops=dict(sl=sl, tp=tp),
     )
-    user=is_active(User, user_id)
+    user = is_active(User, user_id)
     try:
-
         signal = Signal(signal_data, True, user_id)
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
@@ -204,9 +199,8 @@ def new_spot_trade():
 @provider.route("/delete/<int:signal_id>", methods=["POST"])
 def delete_trade(signal_id):
     user_id = has_permission(session, "Provider")
-    user=is_active(User, user_id)
+    user = is_active(User, user_id)
     try:
-       
         signal = query_one_filtered(Signal, id=signal_id)
         if not signal:
             return (
@@ -242,5 +236,3 @@ def delete_trade(signal_id):
             ),
             500,
         )
-
-

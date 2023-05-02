@@ -1,7 +1,13 @@
 from flask import jsonify, Blueprint, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered,is_active
-from binance.spot import Spot as spot_client,futures as futures_client
+from MySignalsApp.utils import (
+    query_all_filtered,
+    has_permission,
+    query_one_filtered,
+    is_active,
+)
+from binance.spot import Spot
+from binance.cm_futures import CMFutures
 
 
 main = Blueprint("main", __name__)
@@ -60,21 +66,25 @@ def get_active_signals():
         )
 
 
-@main.route("/trade")
-def place_trade():
-    user_id= has_permission(session, "User")
-    user=is_active(User, user_id)
-    user_api_key=user.api_key
-    user_api_secret=user.api_secret
+@main.route("/spot/trade/<int:signal_id>")
+def place_spot_trade(signal_id):
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+    # tx_hash=(request.get_json()).get("tx_hash")
+    # if not tx_hash:
+    #     return (
+    #         jsonify({"error": "Bad Request", "message": "tx hash missing"}),
+    #         400,
+    #     )
 
-    params = {
-        "symbol": "BNBUSDT",
-        "side": "BUY",
-        "type": "LIMIT",
-        "timeInForce": "GTC",
-        "quantity": "12",
-        "price": "339",
-    }
+    user_api_key = user.api_key
+    user_api_secret = user.api_secret
+
+    spot_client = Spot(
+        api_key=user_api_key,
+        api_secret=user_api_secret,
+        base_url="https://testnet.binance.vision",
+    )
 
     tpparam = {
         "symbol": "BNBUSDT",
@@ -86,16 +96,74 @@ def place_trade():
     }
     # TODO check hash that correct signal.provider was paid
     try:
-        # trade= spot_client.new_order(**params)
-        # print(trade)
-        # sleep(1)
-        # trade2 = spot_client.new_order(**tpparam)
-        # print(trade2)
+        signal = query_one_filtered(Signal, id=signal_id)
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "The signal with the provided Id does not exist",
+                    }
+                ),
+                404,
+            )
+        if not signal.is_spot:
+            return (
+                jsonify(
+                    {
+                        "error": "Forbidden",
+                        "message": "endpoint only accepts spot trades",
+                    }
+                ),
+                403,
+            )
+        signal = signal.signal
+
+        params = {
+            "symbol": signal["symbol"],
+            "side": signal["side"],
+            "type": "LIMIT",
+            "timeInForce": "GTC",
+            "quantity": signal["quantity"],
+            "price": signal["price"],
+        }
+        stops = signal["stops"]
+
+        slparam = {
+            "symbol": signal["symbol"],
+            "side": "SELL" if signal["side"] == "BUY" else "BUY",
+            "type": "STOP_LOSS_LIMIT",
+            "stopPrice": stops["sl"],
+            "timeInForce": "GTC",
+            "quantity": signal["quantity"],
+            "price": signal["price"],
+        }
+
+        tpparam = {
+            "symbol": signal["symbol"],
+            "side": "SELL" if signal["side"] == "BUY" else "BUY",
+            "type": "TAKE_PROFIT_LIMIT",
+            "stopPrice": stops["tp"],
+            "timeInForce": "GTC",
+            "quantity": signal["quantity"],
+            "price": signal["price"],
+        }
+        trade = spot_client.new_order_test(**params)
+        sleep(1)
+        trade2 = spot_client.new_order_tes(**tpparam)
+        sleep(1)
+        trade3 = spot_client.new_order_tes(**slparam)
         return (
-            jsonify({"message": "success", "signal": {**params, "stopPrice": "341"}}),
+            jsonify(
+                {
+                    "message": "success",
+                    "signal": {**params, "sl": stops.get("sl"), "tp": stops.get("tp")},
+                }
+            ),
             200,
         )
     except ClientError as e:
+        print(e)
         return (
             jsonify(
                 {
@@ -106,6 +174,7 @@ def place_trade():
             e.status_code,
         )
     except Exception as e:
+        print(e)
         return (
             jsonify(
                 {
@@ -127,7 +196,7 @@ def get_signal(signal_id):
             jsonify({"error": "Bad Request", "message": "tx hash missing"}),
             400,
         )
-    user=is_active(User, user_id)
+    user = is_active(User, user_id)
     try:
         signal = query_one_filtered(Signal, id=signal_id)
         # TODO check hash that correct signal.provider was paid use web3.py
@@ -143,5 +212,3 @@ def get_signal(signal_id):
             ),
             500,
         )
-
-
