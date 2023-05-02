@@ -4,7 +4,7 @@ from MySignalsApp.utils import (
     query_one_filtered,
     get_reset_token,
     verify_reset_token,
-    send_email,
+    send_email
 )
 from MySignalsApp import bcrypt, db
 

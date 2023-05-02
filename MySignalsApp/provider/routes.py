@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered
+from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered,is_active
 from binance.spot import Spot
 from binance.error import ClientError
 from dotenv import load_dotenv
@@ -27,15 +27,8 @@ spot_client = Spot(
 @provider.route("/signals")
 def get_signals():
     user_id = has_permission(session, "Provider")
+    user=is_active(User, user_id)
     try:
-        is_active = (query_one_filtered(User, id=user_id)).is_active
-        if not is_active:
-            return (
-                jsonify(
-                    {"error": "Unauthorized", "message": "Your account is not active"}
-                ),
-                401,
-            )
 
         signals = query_all_filtered(Signal, provider=user_id)
 
@@ -63,6 +56,8 @@ def get_signals():
 
 @provider.route("/spot/pairs")
 def get_spot_pairs():
+    user_id=has_permission(session, "Provider")
+    user=is_active(User, user_id)
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
         pairs = []
@@ -86,6 +81,8 @@ def get_spot_pairs():
 
 @provider.route("/futures/pairs")
 def get_futures_pairs():
+    user_id=has_permission(session, "Provider")
+    user=is_active(User, user_id)
     try:
         usdt_symbols = spot_client.exchange_info(permissions=["MARGIN"])["symbols"]
         pairs = []
@@ -122,16 +119,8 @@ def change_wallet():
             ),
             400,
         )
-
+    user=is_active(User, user_id)
     try:
-        user = query_one_filtered(User, id=user_id)
-        if not user.is_active:
-            return (
-                jsonify(
-                    {"error": "Unauthorized", "message": "Your account is not active"}
-                ),
-                401,
-            )
         user.wallet = wallet
         user.update()
 
@@ -194,15 +183,8 @@ def new_spot_trade():
         price=price,
         stops=dict(sl=sl, tp=tp),
     )
+    user=is_active(User, user_id)
     try:
-        user = query_one_filtered(User, id=user_id)
-        if not user.is_active:
-            return (
-                jsonify(
-                    {"error": "Unauthorized", "message": "Your account is not active"}
-                ),
-                401,
-            )
 
         signal = Signal(signal_data, True, user_id)
         signal.insert()
@@ -222,15 +204,9 @@ def new_spot_trade():
 @provider.route("/delete/<int:signal_id>", methods=["POST"])
 def delete_trade(signal_id):
     user_id = has_permission(session, "Provider")
+    user=is_active(User, user_id)
     try:
-        user = query_one_filtered(User, id=user_id)
-        if not user.is_active:
-            return (
-                jsonify(
-                    {"error": "Unauthorized", "message": "Your account is not active"}
-                ),
-                401,
-            )
+       
         signal = query_one_filtered(Signal, id=signal_id)
         if not signal:
             return (
@@ -247,11 +223,11 @@ def delete_trade(signal_id):
             return (
                 jsonify(
                     {
-                        "error": "Unauthorized",
+                        "error": "Forbidden",
                         "message": "You do not have permission to delete this Signal",
                     }
                 ),
-                401,
+                403,
             )
 
         signal.delete()
@@ -266,3 +242,5 @@ def delete_trade(signal_id):
             ),
             500,
         )
+
+

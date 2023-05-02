@@ -1,6 +1,7 @@
 from flask import jsonify, Blueprint, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered
+from MySignalsApp.utils import query_all_filtered, has_permission, query_one_filtered,is_active
+from binance.spot import Spot as spot_client,futures as futures_client
 
 
 main = Blueprint("main", __name__)
@@ -61,6 +62,11 @@ def get_active_signals():
 
 @main.route("/trade")
 def place_trade():
+    user_id= has_permission(session, "User")
+    user=is_active(User, user_id)
+    user_api_key=user.api_key
+    user_api_secret=user.api_secret
+
     params = {
         "symbol": "BNBUSDT",
         "side": "BUY",
@@ -121,17 +127,10 @@ def get_signal(signal_id):
             jsonify({"error": "Bad Request", "message": "tx hash missing"}),
             400,
         )
+    user=is_active(User, user_id)
     try:
-        user = query_one_filtered(User, id=user_id)
-        if not user.is_active:
-            return (
-                jsonify(
-                    {"error": "Unauthorized", "message": "Your account is not active"}
-                ),
-                401,
-            )
         signal = query_one_filtered(Signal, id=signal_id)
-        # TODO check hash that correct signal.provider was paid
+        # TODO check hash that correct signal.provider was paid use web3.py
 
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
@@ -144,3 +143,5 @@ def get_signal(signal_id):
             ),
             500,
         )
+
+
