@@ -1,5 +1,5 @@
 from flask import jsonify, Blueprint, request, session
-from MySignalsApp.models import User, Signal
+from MySignalsApp.models import User, Signal, get_uuid
 from MySignalsApp.utils import (
     query_all_filtered,
     has_permission,
@@ -8,6 +8,8 @@ from MySignalsApp.utils import (
 )
 from binance.spot import Spot
 from binance.cm_futures import CMFutures
+from binance.error import ClientError
+from time import sleep
 
 
 main = Blueprint("main", __name__)
@@ -66,10 +68,11 @@ def get_active_signals():
         )
 
 
-@main.route("/spot/trade/<int:signal_id>")
+@main.route("/spot/trade/<int:signal_id>", methods=["POST"])
 def place_spot_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
+    #  TODO uncomment when hash check is im[lemented]
     # tx_hash=(request.get_json()).get("tx_hash")
     # if not tx_hash:
     #     return (
@@ -85,16 +88,9 @@ def place_spot_trade(signal_id):
         api_secret=user_api_secret,
         base_url="https://testnet.binance.vision",
     )
-
-    tpparam = {
-        "symbol": "BNBUSDT",
-        "side": "SELL",
-        "type": "TAKE_PROFIT_LIMIT",
-        "stopPrice": "341",
-        "timeInForce": "GTC",
-        "quantity": "12",
-    }
     # TODO check hash that correct signal.provider was paid
+    signal = ""
+    uuid = get_uuid()
     try:
         signal = query_one_filtered(Signal, id=signal_id)
         if not signal:
@@ -126,33 +122,22 @@ def place_spot_trade(signal_id):
             "timeInForce": "GTC",
             "quantity": signal["quantity"],
             "price": signal["price"],
+            "newClientOrderId": uuid,
         }
         stops = signal["stops"]
 
-        slparam = {
+        stop_param = {
             "symbol": signal["symbol"],
             "side": "SELL" if signal["side"] == "BUY" else "BUY",
-            "type": "STOP_LOSS_LIMIT",
+            "price": stops["tp"],
+            "quantity": signal["quantity"],
             "stopPrice": stops["sl"],
-            "timeInForce": "GTC",
-            "quantity": signal["quantity"],
-            "price": signal["price"],
+            "stopLimitPrice": stops["sl"],
+            "stopLimitTimeInForce": "GTC",
         }
-
-        tpparam = {
-            "symbol": signal["symbol"],
-            "side": "SELL" if signal["side"] == "BUY" else "BUY",
-            "type": "TAKE_PROFIT_LIMIT",
-            "stopPrice": stops["tp"],
-            "timeInForce": "GTC",
-            "quantity": signal["quantity"],
-            "price": signal["price"],
-        }
-        trade = spot_client.new_order_test(**params)
+        trade = spot_client.new_order(**params)
         sleep(1)
-        trade2 = spot_client.new_order_tes(**tpparam)
-        sleep(1)
-        trade3 = spot_client.new_order_tes(**slparam)
+        trade2 = spot_client.new_oco_order(**stop_param)
         return (
             jsonify(
                 {
@@ -163,6 +148,7 @@ def place_spot_trade(signal_id):
             200,
         )
     except ClientError as e:
+        spot_client.cancel_order(signal["symbol"], origClientOrderId=uuid)
         print(e)
         return (
             jsonify(

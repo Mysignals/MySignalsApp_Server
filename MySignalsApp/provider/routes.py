@@ -17,7 +17,6 @@ load_dotenv(".env")
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
 
-
 @provider.route("/signals")
 def get_signals():
     user_id = has_permission(session, "Provider")
