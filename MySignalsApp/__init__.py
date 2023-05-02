@@ -42,12 +42,15 @@ def create_app(config_class=App_Config):
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
     from MySignalsApp.provider.routes import provider
+    from MySignalsApp.registrar.routes import registrar
     from MySignalsApp.errors.handlers import error
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
-    app.register_blueprint(error)
+
     app.register_blueprint(provider)
+    app.register_blueprint(registrar)
+    app.register_blueprint(error)
 
     with app.app_context():
         db.create_all()
