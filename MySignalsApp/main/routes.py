@@ -10,9 +10,15 @@ from binance.spot import Spot
 from binance.cm_futures import CMFutures
 from binance.error import ClientError
 from time import sleep
+from cryptography.fernet import Fernet
+import os
 
 
 main = Blueprint("main", __name__)
+
+KEY = os.getenv("FERNET_KEY")
+
+kryptr = Fernet(KEY.encode("utf-8"))
 
 
 @main.route("/")
@@ -72,7 +78,7 @@ def get_active_signals():
 def place_spot_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    #  TODO uncomment when hash check is im[lemented]
+    #  TODO uncomment when hash check is implemented
     # tx_hash=(request.get_json()).get("tx_hash")
     # if not tx_hash:
     #     return (
@@ -80,8 +86,8 @@ def place_spot_trade(signal_id):
     #         400,
     #     )
 
-    user_api_key = user.api_key
-    user_api_secret = user.api_secret
+    user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
+    user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
     spot_client = Spot(
         api_key=user_api_key,

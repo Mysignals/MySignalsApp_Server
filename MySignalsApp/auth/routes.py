@@ -8,8 +8,16 @@ from MySignalsApp.utils import (
 )
 from MySignalsApp import bcrypt, db
 
+from cryptography.fernet import Fernet
+
+import os
+
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
+
+KEY = os.getenv("FERNET_KEY")
+
+kryptr = Fernet(KEY.encode("utf-8"))
 
 
 @auth.route("/register", methods=["POST"])
@@ -57,13 +65,12 @@ def register_user():
             ),
             403,
         )
-    # TODO hash api_key and secret
     user = User(
         user_name=user_name,
         email=email,
         password=bcrypt.generate_password_hash(password).decode("utf-8"),
-        api_key=api_key,
-        api_secret=api_secret,
+        api_key=kryptr.encrypt(api_key.encode("utf-8")).decode("utf-8"),
+        api_secret=kryptr.encrypt(api_secret.encode("utf-8")).decode("utf-8"),
     )
     try:
         user.insert()
@@ -327,9 +334,8 @@ def update_keys():
                 ),
                 404,
             )
-        # TODO hash api key and secret
-        user.api_key = api_key
-        user.api_secret = api_secret
+        user.api_key = kryptr.encrypt(api_key.encode("utf-8")).decode("utf-8")
+        user.api_secret = kryptr.encrypt(api_secret.encode("utf-8")).decode("utf-8")
         user.update()
         return jsonify(
             {
