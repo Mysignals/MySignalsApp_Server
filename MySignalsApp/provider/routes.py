@@ -176,6 +176,13 @@ def new_spot_trade():
         stops=dict(sl=sl, tp=tp),
     )
     user = is_active(User, user_id)
+    if not user.wallet:
+        return (
+            jsonify(
+                {"error": "Forbidden", "message": "Provider has no wallet address "}
+            ),
+            403,
+        )
     try:
         signal = Signal(signal_data, True, user_id)
         signal.insert()
