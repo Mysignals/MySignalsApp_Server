@@ -120,7 +120,7 @@ def change_wallet():
         user.wallet = wallet
         user.update()
 
-        return jsonify({"message": "Password changed"}), 200
+        return jsonify({"message": "Wallet changed"}), 200
     except Exception as e:
         return (
             jsonify(

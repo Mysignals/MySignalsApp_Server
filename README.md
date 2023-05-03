@@ -4,3 +4,389 @@
 * documentation
 * futures 
 * place futures trades
+
+
+## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
+---
+<br>
+<br>
+
+### **Base Uri**
+----
+----
+
+....
+
+
+<br>
+
+### **Error Handling**
+----
+----
+Errors are returned as JSON objects in the following format with their error code
+
+```json
+{
+  "error": "error name",
+  "message": "error description"
+}
+```
+The API will return 4 error types, with diffreent descriptions when requests fail;
+- 400: Request unprocessable
+- 404: resource not found
+- 422: Bad Request
+- 500: Internal server error
+<br>
+
+### **Permissions/Roles**
+----
+----
+
+There are three roles available, role will be provided at login and `base_uri/auth/@me`
+
+- User:["User"]
+    * general permissions, regular user
+- Provider:["User","Provider"]
+    * signal providers,permissions to upload signals for users to trade
+- Registrar:["User","Registrar]
+    * Admin, grant roles and view users
+<br>
+
+### **EndPoints**
+----
+----
+<br>
+
+**AUTHENTICATION**
+    server side authentication is Used
+
+  `POST '/auth/register'`
+
+- Register new user,role is set to user and account is marked inactive, sends activation code to user email on success.
+- Request Arguements: JSON object containing
+```json
+{
+  "email":"user email",
+  "user_name":"user name",
+  "password":"password at least 8 characters",
+  "confirm_password":"confirm password",
+  "api_key":"User Binance account api key",
+  "api_secret":"User Bianance account api secret"
+}
+```
+- Returns `message` ,`user name` and `email`
+```json
+{
+    "message": "Success", 
+    "user_name": "user_name", 
+    "email": "user email"
+}
+```
+---
+<br>
+
+  `GET '/auth/activate/${token}'`
+- Activates user account
+- Request Arguements: `token`- string jwt code
+- Returns: JSON object containing
+```json
+{
+    "message": "Success",
+    "user_name":"user_name",
+    "is_active": "boolean account is active or not",
+}
+```
+
+---
+<br>
+
+  `POST '/auth/login'`
+- login user, Server side sessions is used, cookie is sent to client
+- Request Arguements: JSON object containing
+```json
+{
+  "user_name_or_mail":"users username or email address",
+  "password":"user password"
+}
+```
+- Returns: JSON, permissions of logged in user and if user account is active
+
+```json
+ {
+    "message": "Success",
+    "user_name": "user_name",
+    "is_active": true,//boolean- if account is active or not
+    "permission": "User",//string 'User' or array of permissions
+}
+```
+*note:* "permission":["User","Provider"] or "permission":"User"
+
+---
+<br>
+
+  `POST '/auth/reset_password'`
+- Request password reset, reset code sent to user mail if exists
+- Request Arguements: Json object
+```json
+{
+    "email":"user email"
+}
+```
+Returns:
+```json
+{
+    "message": "Reset password token will be sent to {email} if they exist"
+}
+```
+
+---
+<br>
+
+  `POST '/auth/reset_password/${token}'`
+- receive sent token and allows password chsnge
+- Request Arguements `token`-string jwt token and JSON object
+```json
+{
+  "password":"user password",
+  "confirm_password":"confirm password"
+}
+```
+- Returns:
+```json
+{"message": "Password changed"}
+```
+---
+<br>
+
+  `POST '/auth/logout'`
+- Log out user
+- Returns: 'message'
+```json
+{
+    "message": "Success",
+}
+```
+---
+<br>
+
+  `GET '/auth/@me'`
+- gets all data of currenly logged in user
+- Requires logged in
+- Returns: JSON object
+```json
+{
+    "message": "Success",
+    "email": "email",
+    "user_name": "user_name",
+    "is_active": false,
+    "roles": "['User','Rgistrar']",
+    "created_on": "thu 30 june 2021 12:24:07"
+}
+```
+---
+<br>
+
+`POST '/auth/update_keys'`
+- Change api key and secret, Requires logged in
+- Request Arguements: JSON object
+```json
+{
+    "api_key":"key...",
+    "api_secret":"secret..."
+}
+```
+Returns: Json object
+```json
+{
+    "message": "success",
+    "user_name": "user_name",
+    "is_active": true,
+}
+```
+
+---
+---
+<br>
+
+**PROVIDER ENDPOINTS**
+>ENDPOINTS only accessible to logged in user with Provider role
+
+  `GET '/provider/signals'` or `GET '/provider/signals?page=${page}'`
+- get all signals uploaded by logged in provider
+- Request Arguements:query parameter `page`- integer defaults to `1` if not provided
+- Returns: JSON object array of signals, total signals and total number of pages,20 signals max per page
+```json
+{
+    "message": "Success",
+    "signals": [
+        {
+            "id": 1,
+            "signal": {
+                "symbol":"BNBUSDT",
+                "side":"BUY",
+                "quantity":"0.05",
+                "price":"360",
+                "stops":{
+                    "sl":"350",
+                    "tp":"380"
+                }
+            },
+            "status": true, //is signal is still valid
+            "is_spot": true,// if is spot trade
+            "provider": "0x0...",//providers wallet address
+            "date_created": "sun 31 march 2020 13:42:00",
+        },
+        {
+            "id": 2,
+            "signal": {
+                "symbol":"LTCUSDT",
+                "side":"SELL",
+                "quantity":"1",
+                "price":"70.05",
+                "stops":{
+                    "sl":"73.2",
+                    "tp":"60"
+                }
+            },
+            "status": false, //old or no longer valid
+            "is_spot": false,// futures trade
+            "provider": "0x0...",//providers wallet address
+            "date_created": "sun 31 march 2020 13:42:00",
+        },
+    ],
+    "total": 5,// total signals from this provider
+    "pages": 1,// total number of pages available
+}
+```
+
+---
+<br>
+
+  `GET '/provider/spot/pairs'`
+- get all available USDT spot trading pairs from binance
+- Returns: JSON object
+```json
+{
+    "message":"success",
+    "pairs":[
+        "BNBUSDT",
+        "ETHUSDT",
+        "BTCUSDT",]
+}
+```
+---
+<br>
+
+  `GET '/provider/futures/pairs'`
+- get all available USDT futures trading pairs from binance
+- Returns: JSON object
+```json
+{
+    "message":"success",
+    "pairs":[
+        "BNBUSDT",
+        "ETHUSDT",
+        "BTCUSDT",]
+}
+```
+---
+<br>
+
+  `POST '/provider/spot/new'`
+- upload or post new spot trade
+- Request Arguements: JSON object 
+```json
+{
+  "symbol":"BNBUSDT",
+  "side":"SELL",
+  "quantity":"0.5",
+  "price":"336",
+  "tp":"325",
+  "sl":"340"
+}
+```
+- Returns: JSON object
+```json
+{
+    "message":"success",
+    "signal":{
+            "id": 1,
+            "signal": {
+                "symbol":"BNBUSDT",
+                "side":"SELL",
+                "quantity":"0.5",
+                "price":"366",
+                "stops":{
+                    "sl":"340",
+                    "tp":"325"
+                }
+            },
+            "status": true, //is signal is still valid
+            "is_spot": true,// if is spot trade
+            "provider": "0x0...",//providers wallet address
+            "date_created": "sun 31 march 2020 13:42:00",
+        }
+}
+```
+---
+<br>
+
+  `POST '/provider/delete/${signal_id}'`
+- Provider deletes a signal he has created before
+- Request Arguements: `signal_id`- integer id of the signal to delete
+Returns: JSON object
+```json
+{
+    "message":"success",
+    "signal_id":1
+}
+```
+---
+<br>
+
+  `POST '/provider/update_wallet'`
+- allows provider change wallet address the will be paid with requires user is active
+- Request Arguements: JSON object
+```json
+{
+    "wallet":"0x12..."
+}
+```
+Returns:JSON object
+```json
+{
+    "message":"wallet changed"
+}
+```
+
+---
+<br>
+
+**GENERAL ENDPOINTS**
+>ENDPOINTS accessible to any logged in user
+
+  `POST '/spot/trade/${signal_id}'`
+- place trade on logged in users binance account
+- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+```json
+{
+    "tx_hash":"0x09jsmns...",//tx hash of payent made to contract
+}
+```
+- Returns:JSON object
+```json
+{
+    "message":"success",
+    "signal":{
+        "symbol":"BNBUSDT",
+        "side":"SELL",
+        "quantity":"0.5",
+        "price":"336",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "tp":"325",
+        "sl":"340",
+        "newClientOrderId": "bieuhcfu3y478gi88",
+    }
+}
+```
