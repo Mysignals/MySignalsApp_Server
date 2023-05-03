@@ -67,6 +67,18 @@ class User(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def format(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "user_name": self.user_name,
+            "roles": self.roles,
+            "is_active": self.is_active,
+            "wallet": self.wallet,
+            "has_api_keys": True if self.api_key and self.api_secret else False,
+            "date_registered": self.date_registered,
+        }
+
 
 class Signal(db.Model):
     __tablename__ = "signals"
