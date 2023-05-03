@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from MySignalsApp.utils import (
-    query_all_filtered,
+    query_paginate_filtered,
     has_permission,
     query_one_filtered,
     is_active,
@@ -21,15 +21,19 @@ provider = Blueprint("provider", __name__, url_prefix="/provider")
 def get_signals():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+    page = request.args.get("page", 1)
     try:
-        signals = query_all_filtered(Signal, provider=user_id)
+        signals = query_paginate_filtered(Signal, page, provider=user_id)
 
         return (
             jsonify(
                 {
                     "message": "Success",
-                    "signals": [signal.format() for signal in signals],
-                    "total": len(signals),
+                    "signals": [signal.format() for signal in signals]
+                    if signals.items
+                    else [],
+                    "total": signals.total,
+                    "pages": signals.pages,
                 }
             ),
             200,

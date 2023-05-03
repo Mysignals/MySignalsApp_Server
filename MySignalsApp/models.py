@@ -32,7 +32,7 @@ class User(db.Model):
     wallet = db.Column(db.String(100), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
-    date_registered = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     signals = db.Relationship("Signal", backref="user", lazy=True)
 
     def __init__(
@@ -54,7 +54,7 @@ class User(db.Model):
         self.wallet = wallet
 
     def __repr__(self):
-        return f"user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_registered({self.date_registered}))"
+        return f"user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_created({self.date_created}))"
 
     def insert(self):
         db.session.add(self)
@@ -76,7 +76,7 @@ class User(db.Model):
             "is_active": self.is_active,
             "wallet": self.wallet,
             "has_api_keys": True if self.api_key and self.api_secret else False,
-            "date_registered": self.date_registered,
+            "date_created": self.date_created,
         }
 
 

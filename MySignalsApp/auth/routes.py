@@ -292,7 +292,7 @@ def see_sess():
                 "user_name": user.user_name,
                 "is_active": user.is_active,
                 "roles": user.roles.value,
-                "created_on": user.date_registered,
+                "created_on": user.date_created,
             }
         )
     except Exception as e:

@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, session
 from MySignalsApp.utils import (
     query_one_filtered,
-    query_all_filtered,
-    query_all,
+    query_paginate_filtered,
+    query_paginated,
     has_permission,
     is_active,
 )
@@ -202,18 +202,26 @@ def drop_role():
 def get_providers():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-
+    page = request.args.get("page", 1)
     try:
-        providers = query_all_filtered(User, roles=Roles.PROVIDER)
-        if not providers:
-            return jsonify({"message": "success", "providers": [], "total": 0})
+        providers = query_paginate_filtered(User, page, roles=Roles.PROVIDER)
+        if not providers.items:
+            return jsonify(
+                {
+                    "message": "success",
+                    "providers": [],
+                    "pages": providers.pages,
+                    "total": providers.total if providers.total else 0,
+                }
+            )
 
         provider_list = [provider.format() for provider in providers]
         return jsonify(
             {
                 "message": "success",
                 "providers": provider_list,
-                "total": len(provider_list),
+                "pages": providers.pages,
+                "total": providers.total if providers.total else 0,
             }
         )
 
@@ -233,18 +241,26 @@ def get_providers():
 def get_registrars():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-
+    page = request.args.get("page", 1)
     try:
-        registrars = query_all_filtered(User, roles=Roles.REGISTRAR)
-        if not registrars:
-            return jsonify({"message": "success", "providers": [], "total": 0})
+        registrars = query_paginate_filtered(User, page, roles=Roles.REGISTRAR)
+        if not registrars.items:
+            return jsonify(
+                {
+                    "message": "success",
+                    "registrars": [],
+                    "pages": registrars.pages,
+                    "total": registrars.total if registrars.total else 0,
+                }
+            )
 
         registrar_list = [registrar.format() for registrar in registrars]
         return jsonify(
             {
                 "message": "success",
-                "providers": registrar_list,
-                "total": len(registrar_list),
+                "registrars": registrar_list,
+                "pages": registrars.pages,
+                "total": registrars.total if registrars.total else 0,
             }
         )
 
@@ -264,18 +280,26 @@ def get_registrars():
 def get_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-
+    page = request.args.get("page", 1)
     try:
-        users = query_all_filtered(User, roles=Roles.USER)
-        if not users:
-            return jsonify({"message": "success", "providers": [], "total": 0})
+        users = query_paginate_filtered(User, page, roles=Roles.USER)
+        if not users.items:
+            return jsonify(
+                {
+                    "message": "success",
+                    "users": [],
+                    "pages": users.pages,
+                    "total": users.total if users.total else 0,
+                }
+            )
 
         user_list = [user.format() for user in users]
         return jsonify(
             {
                 "message": "success",
-                "providers": user_list,
-                "total": len(user_list),
+                "users": user_list,
+                "pages": users.pages,
+                "total": users.total if users.total else 0,
             }
         )
 
@@ -295,18 +319,26 @@ def get_users():
 def get_all_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-
+    page = request.args.get("page", 1)
     try:
-        users = query_all(User)
-        if not users:
-            return jsonify({"message": "success", "providers": [], "total": 0})
+        users = query_paginated(User, page)
+        if not users.items:
+            return jsonify(
+                {
+                    "message": "success",
+                    "users": [],
+                    "pages": users.pages,
+                    "total": users.total if users.total else 0,
+                }
+            )
 
         user_list = [user.format() for user in users]
         return jsonify(
             {
                 "message": "success",
-                "providers": user_list,
-                "total": len(user_list),
+                "users": user_list,
+                "pages": users.pages,
+                "total": users.total if users.total else 0,
             }
         )
 

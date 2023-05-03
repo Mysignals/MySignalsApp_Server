@@ -24,14 +24,14 @@ def query_all(table):
 
 def query_paginated(table, page):
     return db.paginate(
-        db.select(table).order_by(table.date_posted.desc()), per_page=5, page=page
+        db.select(table).order_by(table.date_created.desc()), per_page=15, page=page
     )
 
 
 def query_paginate_filtered(table, page, **kwargs):
     return db.paginate(
-        db.select(table).filter_by(**kwargs).order_by(table.date_posted.desc()),
-        per_page=5,
+        db.select(table).filter_by(**kwargs).order_by(table.date_created.desc()),
+        per_page=15,
         page=page,
     )
 

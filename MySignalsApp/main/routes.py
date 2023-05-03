@@ -1,7 +1,7 @@
 from flask import jsonify, Blueprint, request, session
 from MySignalsApp.models import User, Signal, get_uuid
 from MySignalsApp.utils import (
-    query_all_filtered,
+    query_paginate_filtered,
     has_permission,
     query_one_filtered,
     is_active,
@@ -23,16 +23,18 @@ kryptr = Fernet(KEY.encode("utf-8"))
 
 @main.route("/")
 def get_active_signals():
+    page = request.args.get("page", 1)
     try:
-        signals = query_all_filtered(Signal, status=True)
+        signals = query_paginate_filtered(Signal, page, status=True)
         filtered_signals = []
-        if not signals:
+        if not signals.items:
             return (
                 jsonify(
                     {
                         "message": "Success",
                         "signals": filtered_signals,
-                        "total": len(filtered_signals),
+                        "pages": signals.pages,
+                        "total":signals.total
                     }
                 ),
                 200,
@@ -57,12 +59,14 @@ def get_active_signals():
                 {
                     "message": "Success",
                     "signals": filtered_signals,
-                    "total": len(filtered_signals),
+                    "total": signals.total,
+                    "pages": signal.pages,
                 }
             ),
             200,
         )
     except Exception as e:
+        print(e)
         return (
             jsonify(
                 {
