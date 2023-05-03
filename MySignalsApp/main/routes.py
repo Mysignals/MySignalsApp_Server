@@ -34,7 +34,7 @@ def get_active_signals():
                         "message": "Success",
                         "signals": filtered_signals,
                         "pages": signals.pages,
-                        "total":signals.total
+                        "total": signals.total,
                     }
                 ),
                 200,

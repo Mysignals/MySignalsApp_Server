@@ -1,1 +1,6 @@
-# Back_sample
+# MySignalsApp_Server
+
+## TODO 
+* documentation
+* futures 
+* place futures trades
