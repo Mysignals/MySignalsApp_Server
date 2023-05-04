@@ -1,7 +1,6 @@
 # MySignalsApp_Server
 
 ## TODO 
-* documentation
 * futures 
 * place futures trades
 
@@ -10,6 +9,29 @@
 ---
 <br>
 <br>
+
+### **Set up the server**
+#### Install Dependencies
+```bash
+python3 -m venv venv
+
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+#### Set up the Database
+
+With Postgres running, create a `sigs` database:
+
+```bash
+createbd sigs
+```
+
+### Run the Server
+```bash
+python3 run.py 
+```
 
 ### **Base Uri**
 ----
@@ -21,9 +43,9 @@
 <br>
 
 ### **Error Handling**
-----
-----
-Errors are returned as JSON objects in the following format with their error code
+---
+---
+>Errors are returned as JSON objects in the following format with their error code
 
 ```json
 {
@@ -31,16 +53,18 @@ Errors are returned as JSON objects in the following format with their error cod
   "message": "error description"
 }
 ```
-The API will return 4 error types, with diffreent descriptions when requests fail;
+The API will return 5 error types, with diffreent descriptions when requests fail;
 - 400: Request unprocessable
+- 403: Forbidden
 - 404: resource not found
 - 422: Bad Request
 - 500: Internal server error
+
 <br>
 
 ### **Permissions/Roles**
-----
-----
+---
+---
 
 There are three roles available, role will be provided at login and `base_uri/auth/@me`
 
@@ -53,12 +77,12 @@ There are three roles available, role will be provided at login and `base_uri/au
 <br>
 
 ### **EndPoints**
-----
-----
+---
+---
 <br>
 
 **AUTHENTICATION**
-    server side authentication is Used
+  > server side authentication is Used
 
   `POST '/auth/register'`
 
@@ -271,7 +295,7 @@ Returns: Json object
     "pairs":[
         "BNBUSDT",
         "ETHUSDT",
-        "BTCUSDT",]
+        "BTCUSDT"]
 }
 ```
 ---
@@ -370,7 +394,7 @@ Returns:JSON object
 - Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
 ```json
 {
-    "tx_hash":"0x09jsmns...",//tx hash of payent made to contract
+    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
 }
 ```
 - Returns:JSON object
@@ -386,7 +410,327 @@ Returns:JSON object
         "type": "LIMIT",
         "tp":"325",
         "sl":"340",
-        "newClientOrderId": "bieuhcfu3y478gi88",
+        "newClientOrderId": "bieuhcfu3y478gi88"
     }
 }
 ```
+---
+<br>
+
+  `GET '/signal/${signal_id}'`
+- get complete details of a signal, requires logged in
+- Request Arguements: query parameter `signal_id`- integer, id of signal to get and JSON object:
+```json
+{
+  "tx_hash":"0x09jsmns..." //tx hash of payment made to contract
+}
+```
+- Returns: JSON object
+```json
+{
+  "message":"success",
+  "signal": {
+            "id": 1,
+            "signal": {
+                "symbol":"BNBUSDT",
+                "side":"SELL",
+                "quantity":"0.5",
+                "price":"366",
+                "stops":{
+                    "sl":"340",
+                    "tp":"325"
+                }
+            },
+            "status": true, //is signal is still valid
+            "is_spot": true,// if is spot trade
+            "provider": "0x0...",//providers wallet address
+            "date_created": "sun 31 march 2020 13:42:00",
+        }
+}
+```
+
+---
+<br>
+
+  `GET '/'` or `GET '?page=${page}'`
+- get reduced/summarized form of all active signals(status=true),paginated
+- Request Arguements: `page`- integer page number, page defaults to `1` if not given
+- Returns:JSON object
+```json
+{
+  "message": "Success",
+  "signals":[
+    {
+      "id": 4,
+      "signal": {
+          "symbol": "LTCUSDT",
+          "side":"SELL",
+      },
+      "is_spot": true,
+      "provider": "0x21gh...",
+      "date_created": "Sun 31 march 2020 13:42:00",
+    },
+    {
+      "id": 7,
+      "signal": {
+          "symbol": "BTCUSDT",
+          "side":"BUY",
+      },
+      "is_spot": true,
+      "provider": "0x21gh...",
+      "date_created": "Sun 31 march 2020 13:42:00",
+    },
+    {
+      "id": 9,
+      "signal": {
+          "symbol": "ETHUSDT",
+          "side":"SELL",
+      },
+      "is_spot": false,
+      "provider": "0x21gh...",
+      "date_created": "Sun 31 march 2020 13:42:00",
+    }
+  ],
+  "total": 40,
+  "pages": 3,
+}
+```
+---
+<br>
+
+**REGISTRAR ENPOINTS**
+>ENDPOINTS only accessible to logged in user with Registrar role
+
+  `POST '/registrar/provider/new'`
+- Change user role to Provider
+- Request Arguements: JSON object
+```json
+{
+  "provider_email":"user@email.com"
+}
+``` 
+- Returns:JSON object
+```json
+{
+  "message": "success", 
+  "provider": "user@email.com"
+}
+```
+
+---
+<br>
+
+  `POST '/registrar/registrar/new'`
+- Change user role to Registrar
+- Request Arguements:JSON object
+```json
+{
+  "registrar_email":"user@email.com"
+}
+```
+- Returns:JSON object
+```json
+{
+  "message": "success", 
+  "registrar": "user@email.com"
+}
+```
+
+---
+<br>
+
+  `POST '/registrar/drop_role'`
+- Drop any special role of back to User
+- Request Arguements: JSON object
+```json
+{
+  "user_email":"user@email.com"
+}
+```
+- RETURNS:JSON object
+```json
+{
+  "message": "success", 
+  "registrar": "user@email.com"
+}
+```
+---
+<br>
+
+  `GET '/registrar/role/providers'` or `GET '/registrar/role/providers?page=${page}'`
+- Get all users with Provider role,paginated
+- Request Arguements: `page`-integer, defaults to `1`
+- Returns:JSON object
+```json
+{
+    "message": "success",
+    "providers": [],
+    "pages": 0,
+    "total": 0,
+}
+```
+or
+```json
+{
+    "message": "success",
+    "providers": [
+      {
+        "id": 4,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "Provider",
+        "is_active": true,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      },
+      {
+        "id": 5,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "Provider",
+        "is_active": false,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      }
+    ],
+    "pages": 1,
+    "total": 2
+}
+``` 
+---
+<br>
+
+  `GET '/registrar/role/registrars'` or `GET '/registrar/role/registrars?page=${page}'`
+- Get all users with Registrar role,paginated
+- Request Arguements: `page`-integer, defaults to `1`
+- Returns:JSON object
+```json
+{
+    "message": "success",
+    "registrars": [],
+    "pages": 0,
+    "total": 0,
+}
+```
+or
+```json
+{
+    "message": "success",
+    "registrars": [
+      {
+        "id": 4,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "Registrars",
+        "is_active": true,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      },
+      {
+        "id": 5,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "Registrar",
+        "is_active": false,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      }
+    ],
+    "pages": 1,
+    "total": 2
+}
+``` 
+---
+<br>
+
+  `GET '/registrar/role/users'` or `GET '/registrar/role/users?page=${page}'`
+- Get all regular users, paginated
+- Request Arguements: `page`-integer, defaults to `1`
+- Returns:JSON object
+```json
+{
+    "message": "success",
+    "users": [],
+    "pages": 0,
+    "total": 0,
+}
+```
+or
+```json
+{
+    "message": "success",
+    "users": [
+      {
+        "id": 4,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "User",
+        "is_active": true,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      },
+      {
+        "id": 5,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "User",
+        "is_active": false,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      }
+    ],
+    "pages": 1,
+    "total": 2
+}
+``` 
+---
+<br>
+
+  `GET '/registrar/get/users'` or `GET '/registrar/get/users?page=${page}'`
+- Get all regardless of role, paginated
+- Request Arguements: `page`-integer, defaults to `1`
+- Returns:JSON object
+```json
+{
+    "message": "success",
+    "users": [],
+    "pages": 0,
+    "total": 0,
+}
+```
+or
+```json
+{
+    "message": "success",
+    "users": [
+      {
+        "id": 4,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "User",
+        "is_active": true,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      },
+      {
+        "id": 5,
+        "email": "user@email.com",
+        "user_name": "user name",
+        "roles": "Provider",
+        "is_active": false,
+        "wallet": "0x05tg4...",
+        "has_api_keys": true,
+        "date_created": "Sun 31 march 2020 13:42:00"
+      }
+    ],
+    "pages": 1,
+    "total": 2
+}
+``` 
