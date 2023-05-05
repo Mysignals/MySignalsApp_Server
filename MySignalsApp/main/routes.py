@@ -7,7 +7,7 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
-from binance.cm_futures import CMFutures
+from binance.um_futures import UMFutures
 from binance.error import ClientError
 from time import sleep
 from cryptography.fernet import Fernet
@@ -66,7 +66,6 @@ def get_active_signals():
             200,
         )
     except Exception as e:
-        print(e)
         return (
             jsonify(
                 {
@@ -79,7 +78,7 @@ def get_active_signals():
 
 
 @main.route("/spot/trade/<int:signal_id>", methods=["POST"])
-def place_spot_trade(signal_id):
+def place_spot_trade(signal_id: int):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
     #  TODO uncomment when hash check is implemented
@@ -185,8 +184,120 @@ def place_spot_trade(signal_id):
         )
 
 
+@main.route("/futures/trade/<int:signal_id>", methods=["POST"])
+def place_futures_trade(signal_id: int):
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+    #  TODO uncomment when hash check is implemented
+    # tx_hash=(request.get_json()).get("tx_hash")
+    # if not tx_hash:
+    #     return (
+    #         jsonify({"error": "Bad Request", "message": "tx hash missing"}),
+    #         400,
+    #     )
+
+    user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
+    user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
+
+    futures_client = UMFutures(
+        key=user_api_key,
+        secret=user_api_secret,
+        base_url="https://testnet.binancefuture.com",
+    )
+    # TODO check hash that correct signal.provider was paid
+    signal = ""
+    trade_uuid = get_uuid()
+    try:
+        signal = query_one_filtered(Signal, id=signal_id)
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "The signal with the provided Id does not exist",
+                    }
+                ),
+                404,
+            )
+        if signal.is_spot:
+            return (
+                jsonify(
+                    {
+                        "error": "Forbidden",
+                        "message": "endpoint only accepts futures trades",
+                    }
+                ),
+                403,
+            )
+        signal = signal.signal
+
+        params = {
+            "symbol": signal["symbol"],
+            "side": signal["side"],
+            "type": "LIMIT",
+            "timeInForce": "GTC",
+            "quantity": signal["quantity"],
+            "price": signal["price"],
+            "newClientOrderId": trade_uuid,
+        }
+        stops = signal["stops"]
+
+        stop_param = {
+            "symbol": signal["symbol"],
+            "side": "SELL" if signal["side"] == "BUY" else "BUY",
+            "closePosition": "true",
+            "type": "STOP_MARKET",
+            "stopPrice": stops["sl"],
+            "quantity": signal["quantity"],
+        }
+        tp_param = {
+            "symbol": signal["symbol"],
+            "side": "SELL" if signal["side"] == "BUY" else "BUY",
+            "stopPrice": stops["tp"],
+            "quantity": signal["quantity"],
+            "closePosition": "true",
+            "type": "TAKE_PROFIT_MARKET",
+        }
+        lev = futures_client.change_leverage(signal["symbol"], signal["leverage"])
+        futures_client.new_order(**params)
+        sleep(1)
+        futures_client.new_order(**stop_param)
+        futures_client.new_order(**tp_param)
+
+        return (
+            jsonify(
+                {
+                    "message": "success",
+                    "signal": {**params, "sl": stops.get("sl"), "tp": stops.get("tp")},
+                }
+            ),
+            200,
+        )
+
+    except ClientError as e:
+        return (
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
+        )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
+
+
 @main.route("/signal/<int:signal_id>")
-def get_signal(signal_id):
+def get_signal(signal_id: int):
     user_id = has_permission(session, "User")
     data = request.get_json()
     tx_hash = data.get("tx_hash")

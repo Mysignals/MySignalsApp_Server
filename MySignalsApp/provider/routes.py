@@ -7,12 +7,10 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.error import ClientError
-from dotenv import load_dotenv
+from binance.spot import Spot
+from binance.um_futures import UMFutures
+from cryptography.fernet import Fernet
 from time import sleep
-
-
-load_dotenv(".env")
-
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
@@ -55,6 +53,8 @@ def get_spot_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
     try:
+        spot_client = Spot()
+
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
         pairs = []
         if not usdt_symbols:
@@ -63,6 +63,16 @@ def get_spot_pairs():
             if symbol["symbol"][-4:] == "USDT":
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
+    except ClientError as e:
+        return (
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": e.error_message,
+                }
+            ),
+            e.status_code,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -80,15 +90,19 @@ def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
     try:
-        usdt_symbols = spot_client.exchange_info(permissions=["MARGIN"])["symbols"]
+        futures_client = UMFutures(base_url="https://testnet.binancefuture.com")
+        usdt_symbols = futures_client.exchange_info()["symbols"]
         pairs = []
         if not usdt_symbols:
             return jsonify({"message": "success", "pairs": pairs}), 200
         for symbol in usdt_symbols:
-            if symbol["symbol"][-4:] == "USDT":
+            if (
+                symbol["symbol"][-4:] == "USDT"
+                and symbol["contractType"] == "PERPETUAL"
+            ):
                 pairs.append(symbol["symbol"])
         return jsonify({"message": "success", "pairs": pairs}), 200
-    except Exception as e:
+    except ClientError as e:
         return (
             jsonify(
                 {
@@ -97,6 +111,16 @@ def get_futures_pairs():
                 }
             ),
             e.status_code,
+        )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
         )
 
 

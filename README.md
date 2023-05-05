@@ -3,6 +3,7 @@
 ## TODO 
 * futures 
 * place futures trades
+* add web3
 
 
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
@@ -13,11 +14,11 @@
 ### **Set up the server**
 #### Install Dependencies
 ```bash
-python3 -m venv venv
+$python3 -m venv venv
 
-source venv/bin/activate
+$source venv/bin/activate
 
-pip install -r requirements.txt
+$pip install -r requirements.txt
 ```
 
 #### Set up the Database
@@ -25,12 +26,12 @@ pip install -r requirements.txt
 With Postgres running, create a `sigs` database:
 
 ```bash
-createbd sigs
+$createdb sigs
 ```
 
 ### Run the Server
 ```bash
-python3 run.py 
+$python3 run.py 
 ```
 
 ### **Base Uri**
