@@ -268,7 +268,12 @@ def place_futures_trade(signal_id: int):
             jsonify(
                 {
                     "message": "success",
-                    "signal": {**params, "sl": stops.get("sl"), "tp": stops.get("tp")},
+                    "signal": {
+                        **params,
+                        "sl": stops.get("sl"),
+                        "tp": stops.get("tp"),
+                        "leverage": signal["leverage"],
+                    },
                 }
             ),
             200,

@@ -2,7 +2,6 @@
 
 ## TODO 
 * futures 
-* place futures trades
 * add web3
 
 
@@ -387,11 +386,11 @@ Returns:JSON object
 ---
 <br>
 
-**GENERAL ENDPOINTS**
+#### **GENERAL ENDPOINTS**
 >ENDPOINTS accessible to any logged in user
 
   `POST '/spot/trade/${signal_id}'`
-- place trade on logged in users binance account
+- place spot trade on logged in users binance account
 - Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
 ```json
 {
@@ -411,6 +410,35 @@ Returns:JSON object
         "type": "LIMIT",
         "tp":"325",
         "sl":"340",
+        "newClientOrderId": "bieuhcfu3y478gi88"
+    }
+}
+```
+---
+<br>
+
+  `POST '/futures/trade/${signal_id}'`
+- place futures trade on logged in users binance account
+- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+```json
+{
+    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
+}
+```
+- Returns:JSON object
+```json
+{
+    "message":"success",
+    "signal":{
+        "symbol":"BNBUSDT",
+        "side":"SELL",
+        "quantity":"0.5",
+        "price":"336",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "tp":"325",
+        "sl":"340",
+        "leverage":"3",
         "newClientOrderId": "bieuhcfu3y478gi88"
     }
 }
@@ -499,7 +527,7 @@ Returns:JSON object
 ---
 <br>
 
-**REGISTRAR ENPOINTS**
+#### **REGISTRAR ENPOINTS**
 >ENDPOINTS only accessible to logged in user with Registrar role
 
   `POST '/registrar/provider/new'`
