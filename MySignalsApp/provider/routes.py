@@ -322,3 +322,45 @@ def delete_trade(signal_id):
             ),
             500,
         )
+
+
+@provider.route("/deactivate/<int:signal_id>", methods=["POST"])
+def deactivate_trade(signal_id):
+    user_id = has_permission(session, "Provider")
+    user = is_active(User, user_id)
+    try:
+        signal = query_one_filtered(Signal, id=signal_id)
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "The signal with the provided Id does not exist",
+                    }
+                ),
+                404,
+            )
+
+        if signal.provider != user_id:
+            return (
+                jsonify(
+                    {
+                        "error": "Forbidden",
+                        "message": "You do not have permission to edit this Signal",
+                    }
+                ),
+                403,
+            )
+        signal.status = False
+        signal.update()
+        return jsonify({"message": "success", "signal_id": signal.id})
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )

@@ -386,7 +386,7 @@ Returns: Json object
                     "tp":"325"
                 }
             },
-            "status": true, //is signal is still valid
+            "status": true, //if signal is still valid
             "is_spot": false,// if is futures trade
             "provider": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
@@ -409,6 +409,21 @@ Returns: JSON object
 ```
 ---
 <br>
+
+
+  `POST '/provider/deactivate/${signal_id}'`
+- Provider marks a signal he has created before as no longer valid 
+- Request Arguements: `signal_id`- integer id of the signal to edit
+Returns: JSON object
+```json
+{
+    "message":"success",
+    "signal_id":1
+}
+```
+---
+<br>
+
 
   `POST '/provider/update_wallet'`
 - allows provider change wallet address the will be paid with requires user is active
