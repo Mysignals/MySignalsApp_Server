@@ -227,6 +227,61 @@ def new_spot_trade():
         )
 
 
+@provider.route("/futures/new", methods=["POST"])
+def new_futures_trade():
+    user_id = has_permission(session, "Provider")
+
+    data = request.get_json()
+    symbol = data.get("symbol")
+    side = data.get("side")
+    quantity = data.get("quantity")
+    price = data.get("price")
+    leverage = data.get("leverage")
+    sl = data.get("sl")
+    tp = data.get("tp")
+
+    if not (symbol and side and quantity and price and sl and tp and leverage):
+        return (
+            jsonify(
+                {
+                    "error": "Bad Request",
+                    "message": "Did you provide all fields correctly?",
+                }
+            ),
+            400,
+        )
+    signal_data = dict(
+        symbol=symbol,
+        side=side,
+        quantity=quantity,
+        price=price,
+        leverage=leverage,
+        stops=dict(sl=sl, tp=tp),
+    )
+    user = is_active(User, user_id)
+    if not user.wallet:
+        return (
+            jsonify(
+                {"error": "Forbidden", "message": "Provider has no wallet address "}
+            ),
+            403,
+        )
+    try:
+        signal = Signal(signal_data, True, user_id, is_spot=False)
+        signal.insert()
+        return jsonify({"message": "success", "signal": signal.format()}), 200
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
+
+
 @provider.route("/delete/<int:signal_id>", methods=["POST"])
 def delete_trade(signal_id):
     user_id = has_permission(session, "Provider")

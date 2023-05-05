@@ -232,7 +232,7 @@ Returns: Json object
 ---
 <br>
 
-**PROVIDER ENDPOINTS**
+#### **PROVIDER ENDPOINTS**
 >ENDPOINTS only accessible to logged in user with Provider role
 
   `GET '/provider/signals'` or `GET '/provider/signals?page=${page}'`
@@ -323,10 +323,10 @@ Returns: Json object
 {
   "symbol":"BNBUSDT",
   "side":"SELL",
-  "quantity":"0.5",
-  "price":"336",
-  "tp":"325",
-  "sl":"340"
+  "quantity":"0.5",//type:float
+  "price":"336",//type:float
+  "tp":"325",//type:float
+  "sl":"340"//type:float
 }
 ```
 - Returns: JSON object
@@ -354,6 +354,48 @@ Returns: Json object
 ```
 ---
 <br>
+
+  `POST '/provider/futures/new'`
+- upload or post new futures trade
+- Request Arguements: JSON object 
+```json
+{
+  "symbol":"BNBUSDT",
+  "side":"SELL",
+  "quantity":"0.5",//type:float
+  "price":"336",//type:float
+  "leverage":"3",//type:integer
+  "tp":"325",//type:float
+  "sl":"340"//type:float
+}
+```
+- Returns: JSON object
+```json
+{
+    "message":"success",
+    "signal":{
+            "id": 1,
+            "signal": {
+                "symbol":"BNBUSDT",
+                "side":"SELL",
+                "quantity":"0.5",
+                "leverage":"5",
+                "price":"366",
+                "stops":{
+                    "sl":"340",
+                    "tp":"325"
+                }
+            },
+            "status": true, //is signal is still valid
+            "is_spot": false,// if is futures trade
+            "provider": "0x0...",//providers wallet address
+            "date_created": "sun 31 march 2020 13:42:00",
+        }
+}
+```
+---
+<br>
+
 
   `POST '/provider/delete/${signal_id}'`
 - Provider deletes a signal he has created before

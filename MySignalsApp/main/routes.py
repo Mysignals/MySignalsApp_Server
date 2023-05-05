@@ -284,7 +284,7 @@ def place_futures_trade(signal_id: int):
             jsonify(
                 {
                     "error": e.error_code,
-                    "message": e.error_message,
+                    "message": f"{e.error_message}. Warning: some orders might have been successfull",
                 }
             ),
             e.status_code,
