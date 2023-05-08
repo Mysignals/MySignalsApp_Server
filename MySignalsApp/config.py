@@ -23,3 +23,6 @@ class App_Config:
     MAIL_USE_SSL = False
     MAIL_USERNAME = os.environ.get("USER_NAME")
     MAIL_PASSWORD = os.environ.get("PASS")
+
+    CACHE_TYPE="FileSystemCache"
+    CACHE_DIR="cache"

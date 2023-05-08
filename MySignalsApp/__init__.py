@@ -5,6 +5,7 @@ from flask_cors import CORS
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_caching import Cache
 
 from MySignalsApp.config import App_Config
 
@@ -14,6 +15,7 @@ bcrypt = Bcrypt()
 
 sess = Session()
 mail = Mail()
+cache=Cache()
 
 
 def create_app(config_class=App_Config):
@@ -38,6 +40,8 @@ def create_app(config_class=App_Config):
     # Initialize Flask-Session
     sess.init_app(app)
     migrate = Migrate(app, db)
+    #Initialize cache
+    cache.init_app(app)
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
