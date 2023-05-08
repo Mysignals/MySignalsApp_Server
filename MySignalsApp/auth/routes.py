@@ -82,7 +82,7 @@ def register_user():
             200,
         )
     except Exception as e:
-        user.delete()
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -102,6 +102,7 @@ def activate_user(token):
         try:
             user.update()
         except Exception as e:
+            db.session.rollback()
             return (
                 jsonify(
                     {
@@ -250,6 +251,7 @@ def reset_token(token):
 
         return jsonify({"error": "Unauthorized", "message": "Invalid token"}), 400
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -345,6 +347,7 @@ def update_keys():
             }
         )
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {

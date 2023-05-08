@@ -7,6 +7,7 @@ from MySignalsApp.utils import (
     is_active,
 )
 from MySignalsApp.models import User, Roles
+from MySignalsApp import db
 
 
 registrar = Blueprint("registrar", __name__, url_prefix="/registrar")
@@ -63,6 +64,7 @@ def add_provider():
         user.insert()
         return jsonify({"message": "success", "provider": provider_email})
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -125,6 +127,7 @@ def add_registrar():
         user.insert()
         return jsonify({"message": "success", "registrar": registrar_email})
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -187,6 +190,7 @@ def drop_role():
         user.insert()
         return jsonify({"message": "success", "registrar": user_email})
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {

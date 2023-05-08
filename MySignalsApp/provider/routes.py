@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp import cache
+from MySignalsApp import cache,db
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
@@ -149,6 +149,7 @@ def change_wallet():
 
         return jsonify({"message": "Wallet changed"}), 200
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -219,6 +220,7 @@ def new_spot_trade():
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -274,6 +276,7 @@ def new_futures_trade():
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -316,6 +319,7 @@ def delete_trade(signal_id):
         signal.delete()
         return jsonify({"message": "success", "signal_id": signal.id})
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -358,6 +362,7 @@ def deactivate_trade(signal_id):
         signal.update()
         return jsonify({"message": "success", "signal_id": signal.id})
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
