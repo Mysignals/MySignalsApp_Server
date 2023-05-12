@@ -165,7 +165,7 @@ def change_wallet():
 @provider.route("/time")
 def get_time():
     try:
-        return spot_client.account()
+        return Spot().ping()
     except ClientError as e:
         return (
             jsonify(
