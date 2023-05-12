@@ -32,6 +32,12 @@ class UpdateKeysSchema(BaseModel):
 class ValidEmailSchema(BaseModel):
     email:EmailStr
 
+    @validator("email")
+    def valid_email_length(cls, v):
+        if len(v) > 345 :
+            raise ValueError
+        return v
+
 class Spotschema(BaseModel):
     symbol:constr(max_length=12)
     side:constr(max_length=4)
