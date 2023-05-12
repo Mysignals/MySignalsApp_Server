@@ -29,7 +29,7 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)
     api_key = db.Column(db.String(), nullable=False)
     api_secret = db.Column(db.String(), nullable=False)
-    wallet = db.Column(db.String(100), nullable=True)
+    wallet = db.Column(db.String(43), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
