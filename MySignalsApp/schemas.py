@@ -47,10 +47,10 @@ class ValidEmailSchema(BaseModel):
             raise ValueError
         return v
 
-class ValidTxHash(BaseModel):
+class ValidTxSchema(BaseModel):
     tx_hash:constr(min_length=66,max_length=66)
 
-class Spotschema(BaseModel):
+class SpotSchema(BaseModel):
     symbol:constr(max_length=12)
     side:constr(max_length=4)
     quantity:float
@@ -63,3 +63,6 @@ class Spotschema(BaseModel):
         if v not in ["BUY","SELL"]:
             raise ValueError
         return v
+    
+class FuturesSchema(SpotSchema):
+    leverage:int
