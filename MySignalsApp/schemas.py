@@ -65,7 +65,7 @@ class ResetPasswordSchema(StringQuerySchema, ValidEmailSchema):
         return v
 
 
-class ValidTxSchema(BaseModel):
+class ValidTxSchema(IntQuerySchema):
     tx_hash: constr(min_length=66, max_length=66)
 
 

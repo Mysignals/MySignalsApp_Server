@@ -1,16 +1,18 @@
 from flask import jsonify, Blueprint, request, session
 from MySignalsApp.models import User, Signal, get_uuid
+from MySignalsApp.schemas import ValidTxSchema
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
     query_one_filtered,
     is_active,
 )
-from binance.spot import Spot
 from binance.um_futures import UMFutures
-from binance.error import ClientError
-from time import sleep
 from cryptography.fernet import Fernet
+from binance.error import ClientError
+from pydantic import ValidationError
+from binance.spot import Spot
+from time import sleep
 import os
 
 
@@ -78,16 +80,11 @@ def get_active_signals():
 
 
 @main.route("/spot/trade/<int:signal_id>", methods=["POST"])
-def place_spot_trade(signal_id: int):
+def place_spot_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    #  TODO uncomment when hash check is implemented
-    # tx_hash=(request.get_json()).get("tx_hash")
-    # if not tx_hash:
-    #     return (
-    #         jsonify({"error": "Bad Request", "message": "tx hash missing"}),
-    #         400,
-    #     )
+
+    tx_hash = (request.get_json()).get("tx_hash")
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
@@ -97,11 +94,12 @@ def place_spot_trade(signal_id: int):
         api_secret=user_api_secret,
         base_url="https://testnet.binance.vision",
     )
-    # TODO check hash that correct signal.provider was paid
     signal = ""
     trade_uuid = get_uuid()
     try:
-        signal = query_one_filtered(Signal, id=signal_id)
+        # TODO check signal_data.tx_hash that correct signal.provider was paid
+        signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+        signal = query_one_filtered(Signal, id=signal_data.id)
         if not signal:
             return (
                 jsonify(
@@ -157,7 +155,14 @@ def place_spot_trade(signal_id: int):
             ),
             200,
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except ClientError as e:
         if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
             spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
@@ -185,16 +190,11 @@ def place_spot_trade(signal_id: int):
 
 
 @main.route("/futures/trade/<int:signal_id>", methods=["POST"])
-def place_futures_trade(signal_id: int):
+def place_futures_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
     #  TODO uncomment when hash check is implemented
-    # tx_hash=(request.get_json()).get("tx_hash")
-    # if not tx_hash:
-    #     return (
-    #         jsonify({"error": "Bad Request", "message": "tx hash missing"}),
-    #         400,
-    #     )
+    tx_hash = (request.get_json()).get("tx_hash")
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
@@ -204,11 +204,12 @@ def place_futures_trade(signal_id: int):
         secret=user_api_secret,
         base_url="https://testnet.binancefuture.com",
     )
-    # TODO check hash that correct signal.provider was paid
+    # TODO check signal_data.tx_hash that correct signal.provider was paid
     signal = ""
     trade_uuid = get_uuid()
     try:
-        signal = query_one_filtered(Signal, id=signal_id)
+        signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+        signal = query_one_filtered(Signal, id=signal_data.id)
         if not signal:
             return (
                 jsonify(
@@ -278,7 +279,14 @@ def place_futures_trade(signal_id: int):
             ),
             200,
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except ClientError as e:
         return (
             jsonify(
@@ -302,21 +310,25 @@ def place_futures_trade(signal_id: int):
 
 
 @main.route("/signal/<int:signal_id>")
-def get_signal(signal_id: int):
+def get_signal(signal_id):
     user_id = has_permission(session, "User")
-    data = request.get_json()
-    tx_hash = data.get("tx_hash")
-    if not tx_hash:
-        return (
-            jsonify({"error": "Bad Request", "message": "tx hash missing"}),
-            400,
-        )
     user = is_active(User, user_id)
+    data = request.get_json()
+
     try:
-        signal = query_one_filtered(Signal, id=signal_id)
+        signal_data = ValidTxSchema(id=signal_id, **data)
+        signal = query_one_filtered(Signal, id=signal_data.id)
         # TODO check hash that correct signal.provider was paid use web3.py
 
         return jsonify({"message": "success", "signal": signal.format()}), 200
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
