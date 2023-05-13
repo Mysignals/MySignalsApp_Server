@@ -148,7 +148,7 @@ There are three roles available, role will be provided at login and `base_uri/au
 ---
 <br>
 
-  `POST '/auth/reset_password'`
+  `GET '/auth/reset_password'`
 - Request password reset, reset code sent to user mail if exists
 - Request Arguements: Json object
 ```json

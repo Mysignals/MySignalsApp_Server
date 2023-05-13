@@ -15,7 +15,7 @@ bcrypt = Bcrypt()
 
 sess = Session()
 mail = Mail()
-cache=Cache()
+cache = Cache()
 
 
 def create_app(config_class=App_Config):
@@ -40,7 +40,7 @@ def create_app(config_class=App_Config):
     # Initialize Flask-Session
     sess.init_app(app)
     migrate = Migrate(app, db)
-    #Initialize cache
+    # Initialize cache
     cache.init_app(app)
 
     from MySignalsApp.main.routes import main

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
-from MySignalsApp import cache,db
+from MySignalsApp import cache, db
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
@@ -50,7 +50,7 @@ def get_signals():
 
 
 @provider.route("/spot/pairs")
-@cache.cached(timeout=1296000)# 15 days
+@cache.cached(timeout=1296000)  # 15 days
 def get_spot_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -88,7 +88,7 @@ def get_spot_pairs():
 
 
 @provider.route("/futures/pairs")
-@cache.cached(timeout=1296000)# 15 days
+@cache.cached(timeout=1296000)  # 15 days
 def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
