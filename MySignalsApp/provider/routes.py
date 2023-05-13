@@ -1,5 +1,10 @@
+from MySignalsApp.schemas import WalletSchema, SpotSchema, FuturesSchema, IntQuerySchema
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
+from binance.um_futures import UMFutures
+from cryptography.fernet import Fernet
+from binance.error import ClientError
+from pydantic import ValidationError
 from MySignalsApp import cache, db
 from MySignalsApp.utils import (
     query_paginate_filtered,
@@ -7,11 +12,7 @@ from MySignalsApp.utils import (
     query_one_filtered,
     is_active,
 )
-from binance.error import ClientError
 from binance.spot import Spot
-from binance.um_futures import UMFutures
-from cryptography.fernet import Fernet
-from time import sleep
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
@@ -131,23 +132,22 @@ def get_futures_pairs():
 def change_wallet():
     user_id = has_permission(session, "Provider")
     data = request.get_json()
-    wallet = data.get("wallet")
-    if not wallet or len(wallet) != 42:
-        return (
-            jsonify(
-                {
-                    "error": "Bad Request",
-                    "message": "Did you provide all fields correctly?",
-                }
-            ),
-            400,
-        )
+
     user = is_active(User, user_id)
     try:
-        user.wallet = wallet
+        data = WalletSchema(**data)
+        user.wallet = data.wallet
         user.update()
 
         return jsonify({"message": "Wallet changed"}), 200
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (
@@ -183,29 +183,23 @@ def new_spot_trade():
     user_id = has_permission(session, "Provider")
 
     data = request.get_json()
-    symbol = data.get("symbol")
-    side = data.get("side")
-    quantity = data.get("quantity")
-    price = data.get("price")
-    sl = data.get("sl")
-    tp = data.get("tp")
-
-    if not (symbol and side and quantity and price and sl and tp):
+    try:
+        data = SpotSchema(**data)
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
         return (
-            jsonify(
-                {
-                    "error": "Bad Request",
-                    "message": "Did you provide all fields correctly?",
-                }
-            ),
+            jsonify({"error": "Bad Request", "message": msg}),
             400,
         )
+
     signal_data = dict(
-        symbol=symbol,
-        side=side,
-        quantity=quantity,
-        price=price,
-        stops=dict(sl=sl, tp=tp),
+        symbol=data.symbol,
+        side=data.side,
+        quantity=data.quantity,
+        price=data.price,
+        stops=dict(sl=data.sl, tp=data.tp),
     )
     user = is_active(User, user_id)
     if not user.wallet:
@@ -237,31 +231,24 @@ def new_futures_trade():
     user_id = has_permission(session, "Provider")
 
     data = request.get_json()
-    symbol = data.get("symbol")
-    side = data.get("side")
-    quantity = data.get("quantity")
-    price = data.get("price")
-    leverage = data.get("leverage")
-    sl = data.get("sl")
-    tp = data.get("tp")
-
-    if not (symbol and side and quantity and price and sl and tp and leverage):
+    try:
+        data = FuturesSchema(**data)
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
         return (
-            jsonify(
-                {
-                    "error": "Bad Request",
-                    "message": "Did you provide all fields correctly?",
-                }
-            ),
+            jsonify({"error": "Bad Request", "message": msg}),
             400,
         )
+
     signal_data = dict(
-        symbol=symbol,
-        side=side,
-        quantity=quantity,
-        price=price,
-        leverage=leverage,
-        stops=dict(sl=sl, tp=tp),
+        symbol=data.symbol,
+        side=data.side,
+        quantity=data.quantity,
+        price=data.price,
+        leverage=data.leverage,
+        stops=dict(sl=data.sl, tp=data.tp),
     )
     user = is_active(User, user_id)
     if not user.wallet:
@@ -293,7 +280,8 @@ def delete_trade(signal_id):
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
     try:
-        signal = query_one_filtered(Signal, id=signal_id)
+        signal_id = IntQuerySchema(id=signal_id)
+        signal = query_one_filtered(Signal, id=signal_id.id)
         if not signal:
             return (
                 jsonify(
@@ -318,6 +306,14 @@ def delete_trade(signal_id):
 
         signal.delete()
         return jsonify({"message": "success", "signal_id": signal.id})
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (
@@ -336,7 +332,8 @@ def deactivate_trade(signal_id):
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
     try:
-        signal = query_one_filtered(Signal, id=signal_id)
+        signal_id = IntQuerySchema(id=signal_id)
+        signal = query_one_filtered(Signal, id=signal_id.id)
         if not signal:
             return (
                 jsonify(
@@ -361,6 +358,14 @@ def deactivate_trade(signal_id):
         signal.status = False
         signal.update()
         return jsonify({"message": "success", "signal_id": signal.id})
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (
