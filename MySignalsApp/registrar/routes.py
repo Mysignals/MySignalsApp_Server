@@ -1,4 +1,7 @@
 from flask import Blueprint, request, jsonify, session
+from MySignalsApp.schemas import ValidEmailSchema
+from MySignalsApp.models import User, Roles
+from pydantic import ValidationError
 from MySignalsApp.utils import (
     query_one_filtered,
     query_paginate_filtered,
@@ -6,7 +9,6 @@ from MySignalsApp.utils import (
     has_permission,
     is_active,
 )
-from MySignalsApp.models import User, Roles
 from MySignalsApp import db
 
 
@@ -19,24 +21,16 @@ def add_provider():
     is_active(User, registrar_id)
 
     data = request.get_json()
-    provider_email = data.get("provider_email")
-
-    if not provider_email:
-        return (
-            jsonify(
-                {"error": "Bad Request", "message": "Did you fill all fields properly?"}
-            ),
-            400,
-        )
 
     try:
-        user = query_one_filtered(User, email=provider_email)
+        provider_email = ValidEmailSchema(**data)
+        user = query_one_filtered(User, email=provider_email.email)
         if not user:
             return (
                 jsonify(
                     {
                         "error": "Resource not found",
-                        "message": f"User with mail {provider_email} does not exist",
+                        "message": f"User with mail {provider_email.email} does not exist",
                     }
                 ),
                 404,
@@ -54,7 +48,7 @@ def add_provider():
                 jsonify(
                     {
                         "error": "Forbidden",
-                        "message": f"The user with mail {provider_email} is already a provider",
+                        "message": f"The user with mail {provider_email.email} is already a provider",
                     }
                 ),
                 403,
@@ -62,7 +56,15 @@ def add_provider():
 
         user.roles = Roles.PROVIDER
         user.insert()
-        return jsonify({"message": "success", "provider": provider_email})
+        return jsonify({"message": "success", "provider": provider_email.email})
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (
@@ -82,24 +84,16 @@ def add_registrar():
     is_active(User, registrar_id)
 
     data = request.get_json()
-    registrar_email = data.get("registrar_email")
-
-    if not registrar_email:
-        return (
-            jsonify(
-                {"error": "Bad Request", "message": "Did you fill all fields properly?"}
-            ),
-            400,
-        )
 
     try:
-        user = query_one_filtered(User, email=registrar_email)
+        registrar_email = ValidEmailSchema(**data)
+        user = query_one_filtered(User, email=registrar_email.email)
         if not user:
             return (
                 jsonify(
                     {
                         "error": "Resource not found",
-                        "message": f"User with mail {registrar_email} does not exist",
+                        "message": f"User with mail {registrar_email.email} does not exist",
                     }
                 ),
                 404,
@@ -117,7 +111,7 @@ def add_registrar():
                 jsonify(
                     {
                         "error": "Forbidden",
-                        "message": f"The user with mail {registrar_email} is already a registrar",
+                        "message": f"The user with mail {registrar_email.email} is already a registrar",
                     }
                 ),
                 403,
@@ -125,7 +119,15 @@ def add_registrar():
 
         user.roles = Roles.REGISTRAR
         user.insert()
-        return jsonify({"message": "success", "registrar": registrar_email})
+        return jsonify({"message": "success", "registrar": registrar_email.email})
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (
@@ -145,24 +147,16 @@ def drop_role():
     is_active(User, registrar_id)
 
     data = request.get_json()
-    user_email = data.get("user_email")
-
-    if not user_email:
-        return (
-            jsonify(
-                {"error": "Bad Request", "message": "Did you fill all fields properly?"}
-            ),
-            400,
-        )
 
     try:
-        user = query_one_filtered(User, email=user_email)
+        user_email = ValidEmailSchema(**data)
+        user = query_one_filtered(User, email=user_email.email)
         if not user:
             return (
                 jsonify(
                     {
                         "error": "Resource not found",
-                        "message": f"User with mail {user_email} does not exist",
+                        "message": f"User with mail {user_email.email} does not exist",
                     }
                 ),
                 404,
@@ -180,7 +174,7 @@ def drop_role():
                 jsonify(
                     {
                         "error": "Forbidden",
-                        "message": f"The user with mail {user_email} is already a regular user",
+                        "message": f"The user with mail {user_email.email} is already a regular user",
                     }
                 ),
                 403,
@@ -188,7 +182,15 @@ def drop_role():
 
         user.roles = Roles.USER
         user.insert()
-        return jsonify({"message": "success", "registrar": user_email})
+        return jsonify({"message": "success", "registrar": user_email.email})
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         db.session.rollback()
         return (

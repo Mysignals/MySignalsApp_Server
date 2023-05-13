@@ -2,7 +2,6 @@ from MySignalsApp.schemas import WalletSchema, SpotSchema, FuturesSchema, IntQue
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from binance.um_futures import UMFutures
-from cryptography.fernet import Fernet
 from binance.error import ClientError
 from pydantic import ValidationError
 from MySignalsApp import cache, db

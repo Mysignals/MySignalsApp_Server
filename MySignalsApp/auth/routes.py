@@ -1,14 +1,8 @@
-from MySignalsApp.models import User
 from flask import jsonify, request, Blueprint, session, abort
-from MySignalsApp.utils import (
-    query_one_filtered,
-    verify_reset_token,
-    send_email,
-)
-from MySignalsApp import bcrypt, db
-
 from cryptography.fernet import Fernet
+from MySignalsApp.models import User
 from pydantic import ValidationError
+from MySignalsApp import bcrypt, db
 from MySignalsApp.schemas import (
     RegisterSchema,
     StringQuerySchema,
@@ -17,7 +11,11 @@ from MySignalsApp.schemas import (
     ResetPasswordSchema,
     UpdateKeysSchema,
 )
-
+from MySignalsApp.utils import (
+    query_one_filtered,
+    verify_reset_token,
+    send_email,
+)
 import os
 
 

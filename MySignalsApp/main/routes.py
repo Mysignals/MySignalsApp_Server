@@ -1,16 +1,16 @@
 from flask import jsonify, Blueprint, request, session
 from MySignalsApp.models import User, Signal, get_uuid
 from MySignalsApp.schemas import ValidTxSchema
+from binance.um_futures import UMFutures
+from cryptography.fernet import Fernet
+from binance.error import ClientError
+from pydantic import ValidationError
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
     query_one_filtered,
     is_active,
 )
-from binance.um_futures import UMFutures
-from cryptography.fernet import Fernet
-from binance.error import ClientError
-from pydantic import ValidationError
 from binance.spot import Spot
 from time import sleep
 import os
