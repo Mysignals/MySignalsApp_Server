@@ -310,7 +310,7 @@ Returns: Json object
     "pairs":[
         "BNBUSDT",
         "ETHUSDT",
-        "BTCUSDT",]
+        "BTCUSDT"]
 }
 ```
 ---
@@ -592,7 +592,7 @@ Returns:JSON object
 - Request Arguements: JSON object
 ```json
 {
-  "provider_email":"user@email.com"
+  "email":"user@email.com"
 }
 ``` 
 - Returns:JSON object
@@ -611,7 +611,7 @@ Returns:JSON object
 - Request Arguements:JSON object
 ```json
 {
-  "registrar_email":"user@email.com"
+  "email":"user@email.com"
 }
 ```
 - Returns:JSON object
@@ -630,7 +630,7 @@ Returns:JSON object
 - Request Arguements: JSON object
 ```json
 {
-  "user_email":"user@email.com"
+  "email":"user@email.com"
 }
 ```
 - RETURNS:JSON object
