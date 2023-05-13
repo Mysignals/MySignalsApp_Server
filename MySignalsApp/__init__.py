@@ -1,13 +1,13 @@
-from flask import Flask, session
-from flask_bcrypt import Bcrypt
+from MySignalsApp.config import App_Config
+from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from flask_migrate import Migrate
+from flask import Flask, session
+from flask_caching import Cache
+from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_mail import Mail
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_caching import Cache
 
-from MySignalsApp.config import App_Config
 
 db = SQLAlchemy()
 

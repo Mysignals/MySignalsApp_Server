@@ -1,8 +1,8 @@
-from MySignalsApp import db, mail
-from flask import current_app, url_for, jsonify
-from flask_mail import Message
-from MySignalsApp.errors.handlers import UtilError
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from MySignalsApp.errors.handlers import UtilError
+from flask import current_app, url_for
+from MySignalsApp import db, mail
+from flask_mail import Message
 
 
 # db helpers

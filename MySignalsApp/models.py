@@ -1,7 +1,7 @@
+from sqlalchemy.dialects.postgresql import JSON
+from datetime import datetime
 from MySignalsApp import db
 from uuid import uuid4
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON
 import enum
 
 
