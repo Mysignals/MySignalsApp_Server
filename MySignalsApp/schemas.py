@@ -1,6 +1,5 @@
 from pydantic import BaseModel,constr,EmailStr,validator,ValidationError
 
-
 class RegisterSchema(BaseModel):
     email:EmailStr
     user_name:constr(to_lower=True,max_length=345,min_length=1)

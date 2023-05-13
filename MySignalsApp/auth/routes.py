@@ -1,5 +1,5 @@
 from MySignalsApp.models import User, Roles
-from flask import jsonify, request, Blueprint, session
+from flask import jsonify, request, Blueprint, session,abort
 from MySignalsApp.utils import (
     query_one_filtered,
     get_reset_token,
@@ -9,6 +9,8 @@ from MySignalsApp.utils import (
 from MySignalsApp import bcrypt, db
 
 from cryptography.fernet import Fernet
+from pydantic import ValidationError
+from MySignalsApp.schemas import RegisterSchema
 
 import os
 
@@ -23,63 +25,42 @@ kryptr = Fernet(KEY.encode("utf-8"))
 @auth.route("/register", methods=["POST"])
 def register_user():
     data = request.get_json()
-    user_name = data.get("user_name")
-    email = data.get("email")
-    api_key = data.get("api_key")
-    api_secret = data.get("api_secret")
-    password = data.get("password")
-    confirm_password = data.get("confirm_password")
 
-    if (
-        not (
-            data
-            and user_name
-            and email
-            and password
-            and confirm_password
-            and api_key
-            and api_secret
-        )
-    ) or len(password) < 8:
-        return (
-            jsonify(
-                {"error": "Bad Request", "message": "Did you fill all fields properly?"}
-            ),
-            400,
-        )
-
-    if password != confirm_password:
-        return (
-            jsonify({"error": "Bad Request", "message": "Passwords do not match"}),
-            400,
-        )
-
-    user_name = user_name.lower()
-
-    if query_one_filtered(User, user_name=user_name) or query_one_filtered(
-        User, email=email
-    ):
-        return (
-            jsonify(
-                {"error": "Conflict", "message": "User_name or email already exists"}
-            ),
-            403,
-        )
-    user = User(
-        user_name=user_name,
-        email=email,
-        password=bcrypt.generate_password_hash(password).decode("utf-8"),
-        api_key=kryptr.encrypt(api_key.encode("utf-8")).decode("utf-8"),
-        api_secret=kryptr.encrypt(api_secret.encode("utf-8")).decode("utf-8"),
-    )
     try:
+        data=RegisterSchema(**data)
+        if query_one_filtered(User, user_name=data.user_name) or query_one_filtered(
+            User, email=data.email
+        ):
+            return (
+                jsonify(
+                    {"error": "Conflict", "message": "User_name or email already exists"}
+                ),
+                403,
+            )
+        user = User(
+            user_name=data.user_name,
+            email=data.email,
+            password=bcrypt.generate_password_hash(data.password).decode("utf-8"),
+            api_key=kryptr.encrypt(data.api_key.encode("utf-8")).decode("utf-8"),
+            api_secret=kryptr.encrypt(data.api_secret.encode("utf-8")).decode("utf-8"),
+        )
         user.insert()
         send_email(user, "auth.activate_user")
         return (
             jsonify(
                 {"message": "Success", "user_name": user.user_name, "email": user.email}
             ),
-            200,
+            201,
+        )
+    except ValidationError as e:
+        msg=""
+        for err in e.errors():
+            msg+= f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify(
+                {"error": "Bad Request", "message": msg}
+            ),
+            400,
         )
     except Exception as e:
         db.session.rollback()
