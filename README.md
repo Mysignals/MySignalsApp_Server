@@ -1,8 +1,7 @@
 # MySignalsApp_Server
 
 ## TODO 
-* futures 
-* add web3
+* add tx confirm from subgraph
 
 
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
