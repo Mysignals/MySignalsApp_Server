@@ -48,7 +48,7 @@ pycparser==2.21
 pycryptodome==3.17
 pydantic==1.10.7
 pyOpenSSL==23.1.1
-python-dotenv==1.0.0
+python-dotenv
 pytz==2023.3
 requests==2.29.0
 service-identity==21.1.0
