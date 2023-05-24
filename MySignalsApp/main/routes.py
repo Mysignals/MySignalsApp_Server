@@ -1,5 +1,5 @@
+from MySignalsApp.models import User, Signal,PlacedSignals, get_uuid
 from flask import jsonify, Blueprint, request, session
-from MySignalsApp.models import User, Signal, get_uuid
 from MySignalsApp.schemas import ValidTxSchema
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
@@ -12,6 +12,7 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
+from MySignalsApp import db
 from time import sleep
 import os
 
@@ -146,6 +147,9 @@ def place_spot_trade(signal_id):
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_param)
 
+        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal.insert()
+
         return (
             jsonify(
                 {
@@ -177,7 +181,7 @@ def place_spot_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
-        print(e)
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -265,6 +269,9 @@ def place_futures_trade(signal_id):
         futures_client.new_order(**stop_param)
         futures_client.new_order(**tp_param)
 
+        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal.insert()
+
         return (
             jsonify(
                 {
@@ -298,6 +305,7 @@ def place_futures_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {
@@ -318,6 +326,8 @@ def get_signal(signal_id):
     try:
         signal_data = ValidTxSchema(id=signal_id, **data)
         signal = query_one_filtered(Signal, id=signal_data.id)
+        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal.insert()
         # TODO check hash that correct signal.provider was paid use web3.py
 
         return jsonify({"message": "success", "signal": signal.format()}), 200
@@ -330,6 +340,7 @@ def get_signal(signal_id):
             400,
         )
     except Exception as e:
+        db.session.rollback()
         return (
             jsonify(
                 {

@@ -34,6 +34,7 @@ class User(db.Model):
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     signals = db.Relationship("Signal", backref="user", lazy=True)
+    placed_signals=db.Relationship("PlacedSignals", backref="user",lazy=True)
 
     def __init__(
         self,
@@ -88,6 +89,7 @@ class Signal(db.Model):
     status = db.Column(db.Boolean(), nullable=False, default=False)
     provider = db.Column(db.String(34), db.ForeignKey("users.id"), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    rating=db.Relationship("PlacedSignals", backref="signal",lazy=True)
 
     def __init__(self, signal, status, provider, is_spot=True):
         self.signal = signal
@@ -116,5 +118,41 @@ class Signal(db.Model):
             "status": self.status,
             "is_spot": self.is_spot,
             "provider": self.user.wallet,
+            "date_created": self.date_created,
+        }
+
+
+class PlacedSignals(db.Model):
+    __tablename__ = "placedsignals"
+    id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
+    user_id=db.Column(db.String(34),db.ForeignKey("users.id"),nullable=False)
+    signal_id=db.Column(db.Integer(),db.ForeignKey("signals.id"),nullable=False)
+    rating=db.Column(db.Integer(),nullable=False,default=0)
+    date_created=db.Column(db.DateTime,default=datetime.utcnow,nullable=False)
+
+    def __init__(self,user_id,signal_id):
+        self.user_id=user_id
+        self.signal_id=signal_id
+
+    def __repr__(self):
+        return f"user_id({self.user_id}), signal({self.signal_id}), rating({self.rating}), date_placed {self.date_created})"
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "signal_id": self.signal_id,
+            "rating": self.rating,
             "date_created": self.date_created,
         }
