@@ -40,6 +40,18 @@ class IntQuerySchema(BaseModel):
     id: int
 
 
+class RatingSchema(BaseModel):
+    rate: int
+
+    @validator("rate")
+    def valid_rating(cls, v):
+        if v not in range(6):
+            raise ValueError
+        if v == 0:
+            raise ValueError
+        return v
+
+
 class PageQuerySchema(BaseModel):
     page: int
 

@@ -1,6 +1,11 @@
 from MySignalsApp.models import User, Signal, PlacedSignals, get_uuid
 from flask import jsonify, Blueprint, request, session
-from MySignalsApp.schemas import ValidTxSchema, PageQuerySchema
+from MySignalsApp.schemas import (
+    ValidTxSchema,
+    PageQuerySchema,
+    IntQuerySchema,
+    RatingSchema,
+)
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
 from binance.error import ClientError
@@ -343,6 +348,53 @@ def get_signal(signal_id):
         # TODO check hash that correct signal.provider was paid use web3.py
 
         return jsonify({"message": "success", "signal": signal.format()}), 200
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
+    except Exception as e:
+        db.session.rollback()
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "It's not you it's us",
+                }
+            ),
+            500,
+        )
+
+
+@main.route("/signal/<int:signal_id>", methods=["POST"])
+def rate_signal(signal_id):
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+    rating = request.get_json()
+
+    try:
+        signal_data = IntQuerySchema(id=signal_id)
+        rating = RatingSchema(rate=rating.get("rate"))
+        signal = query_one_filtered(PlacedSignals, signal_id=signal_data.id)
+
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "Trade not found, Did you take this trade?",
+                    }
+                ),
+                404,
+            )
+
+        signal.rating = rating.rate
+        signal.update()
+
+        return jsonify({"message": "success", "rating": rating.rate}), 200
     except ValidationError as e:
         msg = ""
         for err in e.errors():

@@ -538,6 +538,26 @@ Returns:JSON object
 ---
 <br>
 
+  `POST '/signal/${signal_id}'`
+- rate a trade that as user has paid for and has taken before
+- Request Arguements: query parameter `signal_id`- integer, id of signal to rate and JSON object:
+```json
+{
+  "rate":5 // integer between 1 and 5
+}
+```
+- Returns: JSON object
+```json
+{
+  "message": "success", 
+  "rating": 5
+}
+
+```
+
+---
+<br>
+
   `GET '/'` or `GET '?page=${page}'`
 - get reduced/summarized form of all active signals(status=true),paginated
 - Request Arguements: `page`- integer page number, page defaults to `1` if not given
