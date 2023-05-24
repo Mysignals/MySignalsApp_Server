@@ -1,4 +1,10 @@
-from MySignalsApp.schemas import WalletSchema, SpotSchema, FuturesSchema, IntQuerySchema
+from MySignalsApp.schemas import (
+    WalletSchema,
+    SpotSchema,
+    FuturesSchema,
+    IntQuerySchema,
+    PageQuerySchema,
+)
 from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from binance.um_futures import UMFutures
@@ -20,9 +26,9 @@ provider = Blueprint("provider", __name__, url_prefix="/provider")
 def get_signals():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
-    page = request.args.get("page", 1)
     try:
-        signals = query_paginate_filtered(Signal, page, provider=user_id)
+        page = PageQuerySchema(request.args.get("page", 1))
+        signals = query_paginate_filtered(Signal, page.page, provider=user_id)
 
         return (
             jsonify(
@@ -36,6 +42,14 @@ def get_signals():
                 }
             ),
             200,
+        )
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
         )
     except Exception as e:
         return (

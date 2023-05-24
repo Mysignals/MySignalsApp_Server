@@ -40,6 +40,10 @@ class IntQuerySchema(BaseModel):
     id: int
 
 
+class PageQuerySchema(BaseModel):
+    page: int
+
+
 class WalletSchema(BaseModel):
     wallet: constr(min_length=42, max_length=42)
 

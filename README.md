@@ -553,7 +553,9 @@ Returns:JSON object
           "side":"SELL",
       },
       "is_spot": true,
-      "provider": "0x21gh...",
+      "provider":"proider username",
+      "provider_wallet": "0x21gh...",
+      "provider_rating":4.65,
       "date_created": "Sun 31 march 2020 13:42:00",
     },
     {
@@ -563,7 +565,9 @@ Returns:JSON object
           "side":"BUY",
       },
       "is_spot": true,
-      "provider": "0x21gh...",
+      "provider":"proider username",
+      "provider_wallet": "0x21gh...",
+      "provider_rating":4.05,
       "date_created": "Sun 31 march 2020 13:42:00",
     },
     {
@@ -573,7 +577,9 @@ Returns:JSON object
           "side":"SELL",
       },
       "is_spot": false,
-      "provider": "0x21gh...",
+      "provider":"proider username",
+      "provider_wallet": "0x21gh...",
+      "provider_rating":3.35,
       "date_created": "Sun 31 march 2020 13:42:00",
     }
   ],

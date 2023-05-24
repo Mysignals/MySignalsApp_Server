@@ -1,5 +1,6 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from MySignalsApp.errors.handlers import UtilError
+from MySignalsApp.models import PlacedSignals, Signal
 from flask import current_app, url_for
 from MySignalsApp import db, mail
 from flask_mail import Message
@@ -24,7 +25,10 @@ def query_all(table):
 
 def query_paginated(table, page):
     return db.paginate(
-        db.select(table).order_by(table.date_created.desc()), per_page=15, page=page
+        db.select(table).order_by(table.date_created.desc()),
+        per_page=15,
+        page=page,
+        error_out=False,
     )
 
 
@@ -33,6 +37,7 @@ def query_paginate_filtered(table, page, **kwargs):
         db.select(table).filter_by(**kwargs).order_by(table.date_created.desc()),
         per_page=15,
         page=page,
+        error_out=False,
     )
 
 
@@ -96,3 +101,22 @@ def is_active(table, user_id):
 
     except Exception as e:
         raise UtilError("Internal server error", 500, "It's not you it's us")
+
+
+# rating helpers
+
+
+def calculate_rating(provider_id):
+    ratings = (
+        db.session.execute(
+            db.select(PlacedSignals.rating)
+            .join(PlacedSignals.signal)
+            .filter(Signal.provider == provider_id)
+        )
+        .scalars()
+        .all()
+    )
+    rating_total = 0
+    for rating in ratings:
+        rating_total += rating
+    return round(rating_total / len(ratings), 2)

@@ -1,6 +1,6 @@
-from MySignalsApp.models import User, Signal,PlacedSignals, get_uuid
+from MySignalsApp.models import User, Signal, PlacedSignals, get_uuid
 from flask import jsonify, Blueprint, request, session
-from MySignalsApp.schemas import ValidTxSchema
+from MySignalsApp.schemas import ValidTxSchema, PageQuerySchema
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
 from binance.error import ClientError
@@ -9,6 +9,7 @@ from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
     query_one_filtered,
+    calculate_rating,
     is_active,
 )
 from binance.spot import Spot
@@ -26,9 +27,9 @@ kryptr = Fernet(KEY.encode("utf-8"))
 
 @main.route("/")
 def get_active_signals():
-    page = request.args.get("page", 1)
     try:
-        signals = query_paginate_filtered(Signal, page, status=True)
+        page = PageQuerySchema(page=request.args.get("page", 1))
+        signals = query_paginate_filtered(Signal, page.page, status=True)
         filtered_signals = []
         if not signals.items:
             return (
@@ -52,7 +53,9 @@ def get_active_signals():
                         "side": signal.signal.get("side"),
                     },
                     "is_spot": signal.is_spot,
-                    "provider": signal.user.wallet,
+                    "provider": signal.user.user_name,
+                    "provider_wallet": signal.user.wallet,
+                    "provider_rating": calculate_rating(signal.user.id),
                     "date_created": signal.date_created,
                 }
             )
@@ -63,12 +66,21 @@ def get_active_signals():
                     "message": "Success",
                     "signals": filtered_signals,
                     "total": signals.total,
-                    "pages": signal.pages,
+                    "pages": signals.pages,
                 }
             ),
             200,
         )
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
+        print(e)
         return (
             jsonify(
                 {
@@ -147,7 +159,7 @@ def place_spot_trade(signal_id):
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_param)
 
-        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal = PlacedSignals(user_id, signal_data.id)
         placed_signal.insert()
 
         return (
@@ -269,7 +281,7 @@ def place_futures_trade(signal_id):
         futures_client.new_order(**stop_param)
         futures_client.new_order(**tp_param)
 
-        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal = PlacedSignals(user_id, signal_data.id)
         placed_signal.insert()
 
         return (
@@ -326,7 +338,7 @@ def get_signal(signal_id):
     try:
         signal_data = ValidTxSchema(id=signal_id, **data)
         signal = query_one_filtered(Signal, id=signal_data.id)
-        placed_signal=PlacedSignals(user_id, signal_data.id)
+        placed_signal = PlacedSignals(user_id, signal_data.id)
         placed_signal.insert()
         # TODO check hash that correct signal.provider was paid use web3.py
 

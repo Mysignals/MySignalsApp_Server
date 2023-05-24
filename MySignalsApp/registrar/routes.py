@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from MySignalsApp.schemas import ValidEmailSchema
+from MySignalsApp.schemas import ValidEmailSchema, PageQuerySchema
 from MySignalsApp.models import User, Roles
 from pydantic import ValidationError
 from MySignalsApp.utils import (
@@ -208,9 +208,9 @@ def drop_role():
 def get_providers():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = request.args.get("page", 1)
     try:
-        providers = query_paginate_filtered(User, page, roles=Roles.PROVIDER)
+        page = PageQuerySchema(request.args.get("page", 1))
+        providers = query_paginate_filtered(User, page.page, roles=Roles.PROVIDER)
         if not providers.items:
             return jsonify(
                 {
@@ -230,7 +230,14 @@ def get_providers():
                 "total": providers.total if providers.total else 0,
             }
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -247,9 +254,9 @@ def get_providers():
 def get_registrars():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = request.args.get("page", 1)
     try:
-        registrars = query_paginate_filtered(User, page, roles=Roles.REGISTRAR)
+        page = PageQuerySchema(request.args.get("page", 1))
+        registrars = query_paginate_filtered(User, page.page, roles=Roles.REGISTRAR)
         if not registrars.items:
             return jsonify(
                 {
@@ -269,7 +276,14 @@ def get_registrars():
                 "total": registrars.total if registrars.total else 0,
             }
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -286,9 +300,9 @@ def get_registrars():
 def get_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = request.args.get("page", 1)
     try:
-        users = query_paginate_filtered(User, page, roles=Roles.USER)
+        page = PageQuerySchema(request.args.get("page", 1))
+        users = query_paginate_filtered(User, page.page, roles=Roles.USER)
         if not users.items:
             return jsonify(
                 {
@@ -308,7 +322,14 @@ def get_users():
                 "total": users.total if users.total else 0,
             }
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -325,9 +346,9 @@ def get_users():
 def get_all_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = request.args.get("page", 1)
     try:
-        users = query_paginated(User, page)
+        page = PageQuerySchema(request.args.get("page", 1))
+        users = query_paginated(User, page.page)
         if not users.items:
             return jsonify(
                 {
@@ -347,7 +368,14 @@ def get_all_users():
                 "total": users.total if users.total else 0,
             }
         )
-
+    except ValidationError as e:
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
