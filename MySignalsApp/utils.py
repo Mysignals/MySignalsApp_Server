@@ -65,9 +65,9 @@ def send_email(user, url_func):
     msg.body = f""" visit the following link
 {url_for(url_func,token=token,_external=True)}
 
-<p style="color: bisque;">If you did not make this request then simply ignore this email, no changes will be made</p>
+If you did not make this request then simply ignore this email, no changes will be made
 """
-    # mail.send(msg)
+    mail.send(msg)
     print(url_for(url_func, token=token, _external=True))
 
 
