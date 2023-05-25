@@ -68,7 +68,6 @@ def register_user():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -102,7 +101,6 @@ def activate_user(token):
                 200,
             )
         except Exception as e:
-            db.session.rollback()
             return (
                 jsonify(
                     {
@@ -256,7 +254,6 @@ def reset_password(token):
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -356,7 +353,6 @@ def update_keys():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {

@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from MySignalsApp import db
 
 error = Blueprint("error", __name__)
 
@@ -9,6 +10,12 @@ class UtilError(Exception):
         self.code = code
         self.message = message
 
+@error.teardown_app_request
+def clean_up(exc):
+    try:
+        db.session.remove()
+    except:
+        pass
 
 @error.app_errorhandler(UtilError)
 def resource_not_found(err):

@@ -66,7 +66,6 @@ def add_provider():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -129,7 +128,6 @@ def add_registrar():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -192,7 +190,6 @@ def drop_role():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {

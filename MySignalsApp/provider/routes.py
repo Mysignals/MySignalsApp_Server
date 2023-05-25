@@ -162,7 +162,6 @@ def change_wallet():
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -227,7 +226,6 @@ def new_spot_trade():
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -276,7 +274,6 @@ def new_futures_trade():
         signal.insert()
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -328,7 +325,6 @@ def delete_trade(signal_id):
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -380,7 +376,6 @@ def deactivate_trade(signal_id):
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {

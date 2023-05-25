@@ -198,7 +198,6 @@ def place_spot_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -322,7 +321,6 @@ def place_futures_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -357,7 +355,6 @@ def get_signal(signal_id):
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
@@ -404,7 +401,6 @@ def rate_signal(signal_id):
             400,
         )
     except Exception as e:
-        db.session.rollback()
         return (
             jsonify(
                 {
