@@ -1,7 +1,7 @@
 from MySignalsApp.config import App_Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
-# from flask_migrate import Migrate
+from flask_migrate import Migrate
 from flask import Flask, session
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
@@ -39,7 +39,7 @@ def create_app(config_class=App_Config):
     bcrypt.init_app(app)
     # Initialize Flask-Session
     sess.init_app(app)
-    # migrate = Migrate(app, db)
+    migrate = Migrate(app, db)
     # Initialize cache
     cache.init_app(app)
 
@@ -56,7 +56,7 @@ def create_app(config_class=App_Config):
     app.register_blueprint(registrar)
     app.register_blueprint(error)
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app

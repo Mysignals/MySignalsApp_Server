@@ -13,7 +13,7 @@ tasks:
 
       
     env:
-      SQLALCHEMY_DATABASE_URI: postgresql://gitpod@localhost/sigs
+      SQLALCHEMY_DATABASE_URI: postgresql://gitpod@localhost/sigt
 
 
 ports:
