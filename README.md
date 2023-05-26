@@ -3,6 +3,18 @@
 ## TODO 
 * add tx confirm from subgraph
 
+## Table Of Contents
+- [Set up for Local Machine](#set-up-the-server)
+- [Base Uri/Live Deployment](#base-uri)
+- [Error Handling](#error-handling)
+- [Permissions/Roles](#permissionsroles)
+- [EndPoints](#endpoints)
+  - [Authentication Routes](#authentication)
+  - [Provider Routes](#provider-endpoints)
+  - [General Routes](#general-endpoints)
+  - [Registrar Routes](#registrar-enpoints)
+- [Authors](#authors)
+- [Acknowledgments](#acknowledgments)
 
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
 ---
@@ -27,7 +39,7 @@ With Postgres running, create a `sigs` database:
 $ createdb sigs
 ```
 
-### Run the Server
+#### Run the Server
 ```bash
 $ python3 run.py 
 ```
@@ -57,6 +69,7 @@ The API will return 5 error types, with diffreent descriptions when requests fai
 - 403: Forbidden
 - 404: resource not found
 - 422: Bad Request
+- 429: Too Many Requests(rate limiting)
 - 500: Internal server error
 
 <br>
@@ -80,7 +93,7 @@ There are three roles available, role will be provided at login and `base_uri/au
 ---
 <br>
 
-**AUTHENTICATION**
+#### **AUTHENTICATION**
   > server side authentication is Used
 
   `POST '/auth/register'`
@@ -232,7 +245,7 @@ Returns: Json object
 <br>
 
 #### **PROVIDER ENDPOINTS**
->ENDPOINTS only accessible to logged in user with Provider role
+>ENDPOINTS only accessible to logged in user with Provider role. These are Signal Providers
 
   `GET '/provider/signals'` or `GET '/provider/signals?page=${page}'`
 - get all signals uploaded by logged in provider
@@ -610,7 +623,7 @@ Returns:JSON object
 <br>
 
 #### **REGISTRAR ENPOINTS**
->ENDPOINTS only accessible to logged in user with Registrar role
+>ENDPOINTS only accessible to logged in user with Registrar role. This is The Admin
 
   `POST '/registrar/provider/new'`
 - Change user role to Provider
@@ -845,3 +858,12 @@ or
     "total": 2
 }
 ``` 
+
+
+
+## Authors
+- [@Godhanded](https://github.com/Godhanded)
+
+## Acknowledgments
+
+- Binance-Python-Connector
