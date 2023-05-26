@@ -25,6 +25,7 @@ import os
 
 main = Blueprint("main", __name__)
 
+
 KEY = os.getenv("FERNET_KEY")
 
 kryptr = Fernet(KEY.encode("utf-8"))

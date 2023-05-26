@@ -10,6 +10,7 @@ class UtilError(Exception):
         self.code = code
         self.message = message
 
+
 @error.teardown_app_request
 def clean_up(exc):
     try:
@@ -17,9 +18,15 @@ def clean_up(exc):
     except:
         pass
 
+
 @error.app_errorhandler(UtilError)
 def resource_not_found(err):
     return jsonify({"error": err.error, "message": err.message}), err.code
+
+
+@error.app_errorhandler(400)
+def bad_request(error):
+    return jsonify({"error": error.name, "message": error.description}), 400
 
 
 @error.app_errorhandler(404)
@@ -40,9 +47,9 @@ def cant_process(error):
     return jsonify({"error": error.name, "message": error.description}), 422
 
 
-@error.app_errorhandler(400)
-def bad_request(error):
-    return jsonify({"error": error.name, "message": error.description}), 400
+@error.app_errorhandler(429)
+def cant_process(error):
+    return jsonify({"error": error.name, "message": error.description}), 429
 
 
 @error.app_errorhandler(500)

@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint, session, abort
+from flask import jsonify, request, Blueprint, session
 from cryptography.fernet import Fernet
 from MySignalsApp.models import User
 from pydantic import ValidationError
@@ -20,6 +20,7 @@ import os
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
+
 
 KEY = os.getenv("FERNET_KEY")
 
@@ -84,7 +85,13 @@ def activate_user(token):
     try:
         token = StringQuerySchema(token=token)
     except ValidationError as e:
-        abort(400)
+        msg = ""
+        for err in e.errors():
+            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     user = verify_reset_token(User, token.token)
     if user:
         user.is_active = True

@@ -1,12 +1,15 @@
+from flask_limiter.util import get_remote_address
 from MySignalsApp.config import App_Config
 from flask_sqlalchemy import SQLAlchemy
-from flask_session import Session
 from flask_migrate import Migrate
+from flask_session import Session
+from flask_limiter import Limiter
 from flask import Flask, session
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS
 from flask_mail import Mail
+from flask_cors import CORS
+import os
 
 
 db = SQLAlchemy()
@@ -14,7 +17,9 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 
 sess = Session()
+
 mail = Mail()
+
 cache = Cache()
 
 
@@ -55,6 +60,13 @@ def create_app(config_class=App_Config):
     app.register_blueprint(provider)
     app.register_blueprint(registrar)
     app.register_blueprint(error)
+
+    limiter = Limiter(
+        key_func=get_remote_address,
+        app=app,
+        default_limits=["2 per second", "200 per day", "50 per hour"],
+        storage_uri=os.environ.get("REDIS"),
+    )
 
     # with app.app_context():
     #     db.create_all()

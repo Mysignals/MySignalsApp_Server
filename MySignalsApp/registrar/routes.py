@@ -11,7 +11,6 @@ from MySignalsApp.utils import (
 )
 from MySignalsApp import db
 
-
 registrar = Blueprint("registrar", __name__, url_prefix="/registrar")
 
 
