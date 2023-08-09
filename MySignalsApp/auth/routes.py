@@ -192,7 +192,7 @@ def login_user():
         )
 
 
-@auth.route("/reset_password")
+@auth.route("/reset_password",methods=["POST"])
 def reset_request():
     data = request.get_json()
     try:
