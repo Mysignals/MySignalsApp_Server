@@ -160,7 +160,7 @@ There are three roles available, role will be provided at login and `base_uri/au
 ---
 <br>
 
-  `GET '/auth/reset_password'`
+  `POST '/auth/reset_password'`
 - Request password reset, reset code sent to user mail if exists
 - Request Arguements: Json object
 ```json
@@ -515,14 +515,10 @@ Returns:JSON object
 ---
 <br>
 
-  `GET '/signal/${signal_id}'`
+  `GET '/signal/${signal_id}?tx_hash=${tx_hash}'`
 - get complete details of a signal, requires logged in
-- Request Arguements: query parameter `signal_id`- integer, id of signal to get and JSON object:
-```json
-{
-  "tx_hash":"0x09jsmns..." //tx hash of payment made to contract
-}
-```
+- Request Arguements: query parameter `signal_id`- integer,`tx_hash` - string; id of signal to get;tx hash of payment made to contract
+
 - Returns: JSON object
 ```json
 {
@@ -550,7 +546,7 @@ Returns:JSON object
 ---
 <br>
 
-  `POST '/signal/${signal_id}'`
+  `POST '/signal/rate/${signal_id}'`
 - rate a trade that as user has paid for and has taken before
 - Request Arguements: query parameter `signal_id`- integer, id of signal to rate and JSON object:
 ```json
