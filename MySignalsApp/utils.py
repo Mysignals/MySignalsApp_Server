@@ -1,7 +1,7 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from MySignalsApp.errors.handlers import UtilError
 from MySignalsApp.models import PlacedSignals, Signal
-from flask import current_app, url_for
+from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
 
@@ -62,13 +62,11 @@ def send_email(user, url_func):
     msg = Message(
         "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
     )
-    msg.body = f""" visit the following link
-{url_for(url_func,token=token,_external=True)}
-
-If you did not make this request then simply ignore this email, no changes will be made
-"""
+    msg.body = render_template(
+        "mail_template.html", token=url_for(url_func, token=token, _external=True)
+    )
     mail.send(msg)
-    print(url_for(url_func, token=token, _external=True))
+    # print(url_for(url_func, token=token, _external=True))
 
 
 # session helpers

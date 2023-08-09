@@ -35,7 +35,7 @@ def create_app(config_class=App_Config):
     app.config["SESSION_SQLALCHEMY"] = db
     app.config.from_object(App_Config)
     # Initialize CORS
-    CORS(app)
+    CORS(app,supports_credentials=True)
     # Initialize SQLAlchemy
     db.init_app(app)
     # Initialize Flask-Mail
