@@ -52,8 +52,8 @@ def register_user():
             api_key=kryptr.encrypt(data.api_key.encode("utf-8")).decode("utf-8"),
             api_secret=kryptr.encrypt(data.api_secret.encode("utf-8")).decode("utf-8"),
         )
-        send_email(user, "auth.activate_user")
         user.insert()
+        send_email(user, "auth.activate_user")
         return (
             jsonify(
                 {"message": "Success", "user_name": user.user_name, "email": user.email}
