@@ -94,7 +94,7 @@ def is_active(table, user_id):
         is_active = user.is_active
 
         if not is_active:
-            raise UtilError("Unauthorized", 403, "Your account is not active")
+            raise UtilError("Unauthorized", 401, "Your account is not active")
         return user
 
     except Exception as e:

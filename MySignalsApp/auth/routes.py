@@ -39,7 +39,7 @@ def register_user():
             return (
                 jsonify(
                     {
-                        "error": "Conflict",
+                        "error": "Forbidden",
                         "message": "User_name or email already exists",
                     }
                 ),
@@ -121,11 +121,11 @@ def activate_user(token):
     return (
         jsonify(
             {
-                "error": "Unauthorized",
+                "error": "Forbidden",
                 "message": "Token is not valid or has already been used",
             }
         ),
-        404,
+        403,
     )
 
 
