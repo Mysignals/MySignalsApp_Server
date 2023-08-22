@@ -62,7 +62,7 @@ def send_email(user, url_func):
     msg = Message(
         "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
     )
-    msg.body = render_template(
+    msg.html = render_template(
         "mail_template.html", token=url_for(url_func, token=token, _external=True)
     )
     mail.send(msg)
