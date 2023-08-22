@@ -337,10 +337,10 @@ def place_futures_trade(signal_id):
 def get_signal(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    data = request.get_json()
+    data =request.args.get("tx_hash", None)
 
     try:
-        signal_data = ValidTxSchema(id=signal_id, **data)
+        signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
         signal = query_one_filtered(Signal, id=signal_data.id)
         placed_signal = PlacedSignals(user_id, signal_data.id)
         placed_signal.insert()
@@ -367,7 +367,7 @@ def get_signal(signal_id):
         )
 
 
-@main.route("/signal/<int:signal_id>", methods=["POST"])
+@main.route("/signal/rate/<int:signal_id>", methods=["POST"])
 def rate_signal(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
