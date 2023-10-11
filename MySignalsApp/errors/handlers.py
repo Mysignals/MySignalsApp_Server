@@ -21,37 +21,57 @@ def clean_up(exc):
 
 @error.app_errorhandler(UtilError)
 def resource_not_found(err):
-    return jsonify({"error": err.error, "message": err.message}), err.code
+    return (
+        jsonify({"error": err.error, "message": err.message, "status": False}),
+        err.code,
+    )
 
 
 @error.app_errorhandler(400)
 def bad_request(error):
-    return jsonify({"error": error.name, "message": error.description}), 400
+    return (
+        jsonify({"error": error.name, "message": error.description, "status": False}),
+        400,
+    )
 
 
 @error.app_errorhandler(404)
 def resource_not_found(error):
-    return jsonify({"error": error.name, "message": error.description}), 404
+    return (
+        jsonify({"error": error.name, "message": error.description, "status": False}),
+        404,
+    )
 
 
 @error.app_errorhandler(405)
 def method_not_allowed(error):
     return (
-        jsonify({"error": error.name, "message": error.description}),
+        jsonify({"error": error.name, "message": error.description, "status": False}),
         405,
     )
 
 
 @error.app_errorhandler(422)
 def cant_process(error):
-    return jsonify({"error": error.name, "message": error.description}), 422
+    return (
+        jsonify({"error": error.name, "message": error.description, "status": False}),
+        422,
+    )
 
 
 @error.app_errorhandler(429)
 def cant_process(error):
-    return jsonify({"error": error.name, "message": error.description}), 429
+    return (
+        jsonify({"error": error.name, "message": error.description, "status": False}),
+        429,
+    )
 
 
 @error.app_errorhandler(500)
 def server_error(error):
-    return jsonify({"error": error.name, "message": "Its not you its us"}), 500
+    return (
+        jsonify(
+            {"error": error.name, "message": "Its not you its us", "status": False}
+        ),
+        500,
+    )

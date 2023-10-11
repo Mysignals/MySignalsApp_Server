@@ -30,6 +30,7 @@ def add_provider():
                     {
                         "error": "Resource not found",
                         "message": f"User with mail {provider_email.email} does not exist",
+                        "status": False,
                     }
                 ),
                 404,
@@ -38,7 +39,11 @@ def add_provider():
         if user.id == registrar_id:
             return (
                 jsonify(
-                    {"error": "Forbidden", "message": "You can't change role of self"}
+                    {
+                        "error": "Forbidden",
+                        "message": "You can't change role of self",
+                        "status": False,
+                    }
                 ),
                 403,
             )
@@ -48,6 +53,7 @@ def add_provider():
                     {
                         "error": "Forbidden",
                         "message": f"The user with mail {provider_email.email} is already a provider",
+                        "status": False,
                     }
                 ),
                 403,
@@ -55,13 +61,15 @@ def add_provider():
 
         user.roles = Roles.PROVIDER
         user.insert()
-        return jsonify({"message": "success", "provider": provider_email.email})
+        return jsonify(
+            {"message": "success", "provider": provider_email.email, "status": True}
+        )
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -70,6 +78,7 @@ def add_provider():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -92,6 +101,7 @@ def add_registrar():
                     {
                         "error": "Resource not found",
                         "message": f"User with mail {registrar_email.email} does not exist",
+                        "status": False,
                     }
                 ),
                 404,
@@ -100,7 +110,11 @@ def add_registrar():
         if user.id == registrar_id:
             return (
                 jsonify(
-                    {"error": "Forbidden", "message": "You can't change role of self"}
+                    {
+                        "error": "Forbidden",
+                        "message": "You can't change role of self",
+                        "status": False,
+                    }
                 ),
                 403,
             )
@@ -110,6 +124,7 @@ def add_registrar():
                     {
                         "error": "Forbidden",
                         "message": f"The user with mail {registrar_email.email} is already a registrar",
+                        "status": False,
                     }
                 ),
                 403,
@@ -117,13 +132,15 @@ def add_registrar():
 
         user.roles = Roles.REGISTRAR
         user.insert()
-        return jsonify({"message": "success", "registrar": registrar_email.email})
+        return jsonify(
+            {"message": "success", "registrar": registrar_email.email, "status": True}
+        )
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -132,6 +149,7 @@ def add_registrar():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -154,6 +172,7 @@ def drop_role():
                     {
                         "error": "Resource not found",
                         "message": f"User with mail {user_email.email} does not exist",
+                        "status": False,
                     }
                 ),
                 404,
@@ -162,7 +181,11 @@ def drop_role():
         if user.id == registrar_id:
             return (
                 jsonify(
-                    {"error": "Forbidden", "message": "You can't change role of self"}
+                    {
+                        "error": "Forbidden",
+                        "message": "You can't change role of self",
+                        "status": False,
+                    }
                 ),
                 403,
             )
@@ -172,6 +195,7 @@ def drop_role():
                     {
                         "error": "Forbidden",
                         "message": f"The user with mail {user_email.email} is already a regular user",
+                        "status": False,
                     }
                 ),
                 403,
@@ -179,13 +203,15 @@ def drop_role():
 
         user.roles = Roles.USER
         user.insert()
-        return jsonify({"message": "success", "registrar": user_email.email})
+        return jsonify(
+            {"message": "success", "registrar": user_email.email, "status": True}
+        )
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -194,6 +220,7 @@ def drop_role():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -214,6 +241,7 @@ def get_providers():
                     "providers": [],
                     "pages": providers.pages,
                     "total": providers.total if providers.total else 0,
+                    "status": True,
                 }
             )
 
@@ -224,6 +252,7 @@ def get_providers():
                 "providers": provider_list,
                 "pages": providers.pages,
                 "total": providers.total if providers.total else 0,
+                "status": True,
             }
         )
     except ValidationError as e:
@@ -231,7 +260,7 @@ def get_providers():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -240,6 +269,7 @@ def get_providers():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -260,6 +290,7 @@ def get_registrars():
                     "registrars": [],
                     "pages": registrars.pages,
                     "total": registrars.total if registrars.total else 0,
+                    "status": True,
                 }
             )
 
@@ -270,6 +301,7 @@ def get_registrars():
                 "registrars": registrar_list,
                 "pages": registrars.pages,
                 "total": registrars.total if registrars.total else 0,
+                "status": True,
             }
         )
     except ValidationError as e:
@@ -277,7 +309,7 @@ def get_registrars():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -286,6 +318,7 @@ def get_registrars():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -306,6 +339,7 @@ def get_users():
                     "users": [],
                     "pages": users.pages,
                     "total": users.total if users.total else 0,
+                    "status": True,
                 }
             )
 
@@ -316,6 +350,7 @@ def get_users():
                 "users": user_list,
                 "pages": users.pages,
                 "total": users.total if users.total else 0,
+                "status": True,
             }
         )
     except ValidationError as e:
@@ -323,7 +358,7 @@ def get_users():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -332,6 +367,7 @@ def get_users():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -352,6 +388,7 @@ def get_all_users():
                     "users": [],
                     "pages": users.pages,
                     "total": users.total if users.total else 0,
+                    "status": True,
                 }
             )
 
@@ -362,6 +399,7 @@ def get_all_users():
                 "users": user_list,
                 "pages": users.pages,
                 "total": users.total if users.total else 0,
+                "status": True,
             }
         )
     except ValidationError as e:
@@ -369,7 +407,7 @@ def get_all_users():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -378,6 +416,7 @@ def get_all_users():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,

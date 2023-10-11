@@ -41,6 +41,7 @@ def register_user():
                     {
                         "error": "Forbidden",
                         "message": "User_name or email already exists",
+                        "status": False,
                     }
                 ),
                 403,
@@ -56,7 +57,12 @@ def register_user():
         send_email(user, "auth.activate_user")
         return (
             jsonify(
-                {"message": "Success", "user_name": user.user_name, "email": user.email}
+                {
+                    f"message": "a confirmation mail has bee sent to {user.email}",
+                    "user_name": user.user_name,
+                    "email": user.email,
+                    "status": True,
+                }
             ),
             201,
         )
@@ -69,7 +75,7 @@ def register_user():
                 error = "Invalid input format,a-z 0-9 _ only"
             msg.append({"field": field, "error": error})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -78,6 +84,7 @@ def register_user():
                 {
                     "error": "Internal server error",
                     "message": "User not registered, It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -93,7 +100,7 @@ def activate_user(token):
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     user = verify_reset_token(User, token.token)
@@ -107,6 +114,7 @@ def activate_user(token):
                         "message": "Success",
                         "user_name": user.user_name,
                         "is_active": user.is_active,
+                        "status": True,
                     }
                 ),
                 200,
@@ -117,6 +125,7 @@ def activate_user(token):
                     {
                         "error": "Internal server error",
                         "message": "User not activated, It's not you it's us",
+                        "status": False,
                     }
                 ),
                 500,
@@ -127,6 +136,7 @@ def activate_user(token):
             {
                 "error": "Forbidden",
                 "message": "Token is not valid or has already been used",
+                "status": False,
             }
         ),
         403,
@@ -147,6 +157,7 @@ def login_user():
                         {
                             "error": "Unauthorized",
                             "message": "Incorrect username or password",
+                            "status": False,
                         },
                     ),
                     401,
@@ -160,6 +171,7 @@ def login_user():
                         "user_name": user.user_name,
                         "is_active": user.is_active,
                         "permission": user.roles.value,
+                        "status": True,
                     },
                 ),
                 200,
@@ -172,6 +184,7 @@ def login_user():
                     "user_name": user.user_name,
                     "is_active": user.is_active,
                     "permission": user.roles.value,
+                    "status": True,
                 },
             ),
             200,
@@ -181,7 +194,7 @@ def login_user():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -190,6 +203,7 @@ def login_user():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -209,7 +223,8 @@ def reset_request():
             return (
                 jsonify(
                     {
-                        "message": f"Reset password token will be sent to {data.email} if they exist"
+                        "message": f"Reset password token will be sent to {data.email} if they exist",
+                        "status": True,
                     }
                 ),
                 200,
@@ -217,17 +232,18 @@ def reset_request():
         return (
             jsonify(
                 {
-                    "message": f"Reset password token will be sent to {data.email} if they exist"
+                    "message": f"Reset password token will be sent to {data.email} if they exist",
+                    "status": True,
                 }
             ),
-            404,
+            200,
         )
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -236,6 +252,7 @@ def reset_request():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -253,15 +270,20 @@ def reset_password(token):
             user.password = bcrypt.generate_password_hash(data.password)
             user.update()
             session.pop("user", None)
-            return jsonify({"message": "Password changed"}), 200
+            return jsonify({"message": "Password changed", "status": True}), 200
 
-        return jsonify({"error": "Unauthorized", "message": "Invalid token"}), 400
+        return (
+            jsonify(
+                {"error": "Unauthorized", "message": "Invalid token", "status": False}
+            ),
+            400,
+        )
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -270,6 +292,7 @@ def reset_password(token):
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -280,11 +303,7 @@ def reset_password(token):
 def logout_user():
     session.pop("user", None)
     return (
-        jsonify(
-            {
-                "message": "Success",
-            }
-        ),
+        jsonify({"message": "Success", "status": True}),
         200,
     )
 
@@ -295,7 +314,13 @@ def see_sess():
 
     if not user:
         return (
-            jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
+            jsonify(
+                {
+                    "error": "Unauthorized",
+                    "message": "You are not logged in",
+                    "status": False,
+                }
+            ),
             401,
         )
     try:
@@ -308,6 +333,7 @@ def see_sess():
                 "is_active": user.is_active,
                 "roles": user.roles.value,
                 "created_on": user.date_created,
+                "status": True,
             }
         )
     except Exception as e:
@@ -316,6 +342,7 @@ def see_sess():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -327,7 +354,13 @@ def update_keys():
     user_id = session.get("user")
     if not user_id:
         return (
-            jsonify({"error": "Unauthorized", "message": "You are not logged in"}),
+            jsonify(
+                {
+                    "error": "Unauthorized",
+                    "message": "You are not logged in",
+                    "status": False,
+                }
+            ),
             401,
         )
 
@@ -339,7 +372,11 @@ def update_keys():
         if not user:
             return (
                 jsonify(
-                    {"error": "Resource not found", "message": "User does not exist"}
+                    {
+                        "error": "Resource not found",
+                        "message": "User does not exist",
+                        "status": False,
+                    }
                 ),
                 404,
             )
@@ -353,6 +390,7 @@ def update_keys():
                 "message": "success",
                 "user_name": user.user_name,
                 "is_active": user.is_active,
+                "status": True,
             }
         )
     except ValidationError as e:
@@ -360,7 +398,7 @@ def update_keys():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -369,6 +407,7 @@ def update_keys():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,

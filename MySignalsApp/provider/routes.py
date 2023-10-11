@@ -39,6 +39,7 @@ def get_signals():
                     else [],
                     "total": signals.total,
                     "pages": signals.pages,
+                    "status": True,
                 }
             ),
             200,
@@ -48,7 +49,7 @@ def get_signals():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -57,6 +58,7 @@ def get_signals():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -74,28 +76,22 @@ def get_spot_pairs():
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
         pairs = []
         if not usdt_symbols:
-            return jsonify({"message": "success", "pairs": pairs}), 200
+            return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
         for symbol in usdt_symbols:
             if symbol["symbol"][-4:] == "USDT":
                 pairs.append(symbol["symbol"])
-        return jsonify({"message": "success", "pairs": pairs}), 200
+        return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:
         return (
             jsonify(
-                {
-                    "error": e.error_code,
-                    "message": e.error_message,
-                }
+                {"error": e.error_code, "message": e.error_message, "status": False}
             ),
             e.status_code,
         )
     except Exception as e:
         return (
             jsonify(
-                {
-                    "error": e.error_code,
-                    "message": e.error_message,
-                }
+                {"error": e.error_code, "message": e.error_message, "status": False}
             ),
             e.status_code,
         )
@@ -111,21 +107,18 @@ def get_futures_pairs():
         usdt_symbols = futures_client.exchange_info()["symbols"]
         pairs = []
         if not usdt_symbols:
-            return jsonify({"message": "success", "pairs": pairs}), 200
+            return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
         for symbol in usdt_symbols:
             if (
                 symbol["symbol"][-4:] == "USDT"
                 and symbol["contractType"] == "PERPETUAL"
             ):
                 pairs.append(symbol["symbol"])
-        return jsonify({"message": "success", "pairs": pairs}), 200
+        return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:
         return (
             jsonify(
-                {
-                    "error": e.error_code,
-                    "message": e.error_message,
-                }
+                {"error": e.error_code, "message": e.error_message, "status": False}
             ),
             e.status_code,
         )
@@ -135,6 +128,7 @@ def get_futures_pairs():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -152,13 +146,13 @@ def change_wallet():
         user.wallet = data.wallet
         user.update()
 
-        return jsonify({"message": "Wallet changed"}), 200
+        return jsonify({"message": "Wallet changed", "status": True}), 200
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -167,6 +161,7 @@ def change_wallet():
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -181,10 +176,7 @@ def get_time():
     except ClientError as e:
         return (
             jsonify(
-                {
-                    "error": e.error_code,
-                    "message": e.error_message,
-                }
+                {"error": e.error_code, "message": e.error_message, "status": False}
             ),
             e.status_code,
         )
@@ -202,7 +194,7 @@ def new_spot_trade():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
 
@@ -217,20 +209,28 @@ def new_spot_trade():
     if not user.wallet:
         return (
             jsonify(
-                {"error": "Forbidden", "message": "Provider has no wallet address "}
+                {
+                    "error": "Forbidden",
+                    "message": "Provider has no wallet address",
+                    "status": False,
+                }
             ),
             403,
         )
     try:
         signal = Signal(signal_data, True, user_id)
         signal.insert()
-        return jsonify({"message": "success", "signal": signal.format()}), 200
+        return (
+            jsonify({"message": "success", "signal": signal.format(), "status": True}),
+            200,
+        )
     except Exception as e:
         return (
             jsonify(
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -249,7 +249,7 @@ def new_futures_trade():
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
 
@@ -265,20 +265,28 @@ def new_futures_trade():
     if not user.wallet:
         return (
             jsonify(
-                {"error": "Forbidden", "message": "Provider has no wallet address "}
+                {
+                    "error": "Forbidden",
+                    "message": "Provider has no wallet address",
+                    "status": False,
+                }
             ),
             403,
         )
     try:
         signal = Signal(signal_data, True, user_id, is_spot=False)
         signal.insert()
-        return jsonify({"message": "success", "signal": signal.format()}), 200
+        return (
+            jsonify({"message": "success", "signal": signal.format(), "status": True}),
+            200,
+        )
     except Exception as e:
         return (
             jsonify(
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -298,6 +306,7 @@ def delete_trade(signal_id):
                     {
                         "error": "Resource Not found",
                         "message": "The signal with the provided Id does not exist",
+                        "status": False,
                     }
                 ),
                 404,
@@ -309,19 +318,20 @@ def delete_trade(signal_id):
                     {
                         "error": "Forbidden",
                         "message": "You do not have permission to delete this Signal",
+                        "status": False,
                     }
                 ),
                 403,
             )
 
         signal.delete()
-        return jsonify({"message": "success", "signal_id": signal.id})
+        return jsonify({"message": "success", "signal_id": signal.id, "status": True})
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -330,6 +340,7 @@ def delete_trade(signal_id):
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
@@ -349,6 +360,7 @@ def deactivate_trade(signal_id):
                     {
                         "error": "Resource Not found",
                         "message": "The signal with the provided Id does not exist",
+                        "status": False,
                     }
                 ),
                 404,
@@ -360,19 +372,20 @@ def deactivate_trade(signal_id):
                     {
                         "error": "Forbidden",
                         "message": "You do not have permission to edit this Signal",
+                        "status": False,
                     }
                 ),
                 403,
             )
         signal.status = False
         signal.update()
-        return jsonify({"message": "success", "signal_id": signal.id})
+        return jsonify({"message": "success", "signal_id": signal.id, "status": True})
     except ValidationError as e:
         msg = []
         for err in e.errors():
             msg.append({"field": err["loc"][0], "error": err["msg"]})
         return (
-            jsonify({"error": "Bad Request", "message": msg}),
+            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -381,6 +394,7 @@ def deactivate_trade(signal_id):
                 {
                     "error": "Internal server error",
                     "message": "It's not you it's us",
+                    "status": False,
                 }
             ),
             500,
