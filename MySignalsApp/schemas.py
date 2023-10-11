@@ -3,7 +3,9 @@ from pydantic import BaseModel, constr, EmailStr, validator
 
 class RegisterSchema(BaseModel):
     email: EmailStr
-    user_name: constr(regex=r'^[a-zA-Z0-9_]+$',to_lower=True, max_length=345, min_length=1)
+    user_name: constr(
+        regex=r"^[a-zA-Z0-9_]+$", to_lower=True, max_length=345, min_length=1
+    )
     password: constr(max_length=64, min_length=8)
     confirm_password: constr(max_length=64, min_length=8)
     api_key: constr(max_length=100)

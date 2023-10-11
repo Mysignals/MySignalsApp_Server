@@ -46,10 +46,11 @@ def get_signals():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -155,10 +156,11 @@ def change_wallet():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -198,10 +200,11 @@ def new_spot_trade():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
 
     signal_data = dict(
         symbol=data.symbol,
@@ -244,10 +247,11 @@ def new_futures_trade():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
 
     signal_data = dict(
         symbol=data.symbol,
@@ -315,10 +319,11 @@ def delete_trade(signal_id):
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -365,10 +370,11 @@ def deactivate_trade(signal_id):
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(

@@ -59,10 +59,11 @@ def add_provider():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -120,10 +121,11 @@ def add_registrar():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -181,10 +183,11 @@ def drop_role():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -226,10 +229,11 @@ def get_providers():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -271,10 +275,11 @@ def get_registrars():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -316,10 +321,11 @@ def get_users():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
@@ -361,10 +367,11 @@ def get_all_users():
     except ValidationError as e:
         msg = []
         for err in e.errors():
-            msg.append({
-                "field": err["loc"][0],
-                "error":err["msg"]
-            })
+            msg.append({"field": err["loc"][0], "error": err["msg"]})
+        return (
+            jsonify({"error": "Bad Request", "message": msg}),
+            400,
+        )
     except Exception as e:
         return (
             jsonify(
