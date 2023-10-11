@@ -61,9 +61,16 @@ def register_user():
             201,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
+            field=err["loc"][0]
+            error=err["msg"]
+            if "regex" in error:
+                error="Invalid input format,a-z 0-9 _ only"
+            msg.append({
+                "field": field,
+                "error":error
+            })
         return (
             jsonify({"error": "Bad Request", "message": msg}),
             400,
@@ -85,13 +92,12 @@ def activate_user(token):
     try:
         token = StringQuerySchema(token=token)
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     user = verify_reset_token(User, token.token)
     if user:
         user.is_active = True
@@ -173,13 +179,12 @@ def login_user():
             200,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -219,13 +224,12 @@ def reset_request():
             404,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -253,13 +257,12 @@ def reset_password(token):
 
         return jsonify({"error": "Unauthorized", "message": "Invalid token"}), 400
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -352,13 +355,12 @@ def update_keys():
             }
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(

@@ -57,13 +57,12 @@ def add_provider():
         user.insert()
         return jsonify({"message": "success", "provider": provider_email.email})
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -119,13 +118,12 @@ def add_registrar():
         user.insert()
         return jsonify({"message": "success", "registrar": registrar_email.email})
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -181,13 +179,12 @@ def drop_role():
         user.insert()
         return jsonify({"message": "success", "registrar": user_email.email})
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -227,13 +224,12 @@ def get_providers():
             }
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -273,13 +269,12 @@ def get_registrars():
             }
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -319,13 +314,12 @@ def get_users():
             }
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -365,13 +359,12 @@ def get_all_users():
             }
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(

@@ -78,13 +78,12 @@ def get_active_signals():
             200,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         print(e)
         return (
@@ -178,13 +177,12 @@ def place_spot_trade(signal_id):
             200,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except ClientError as e:
         if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
             spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
@@ -304,13 +302,12 @@ def place_futures_trade(signal_id):
             200,
         )
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except ClientError as e:
         return (
             jsonify(
@@ -348,13 +345,12 @@ def get_signal(signal_id):
 
         return jsonify({"message": "success", "signal": signal.format()}), 200
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
@@ -394,13 +390,12 @@ def rate_signal(signal_id):
 
         return jsonify({"message": "success", "rating": rating.rate}), 200
     except ValidationError as e:
-        msg = ""
+        msg = []
         for err in e.errors():
-            msg += f"{str(err.get('loc')).strip('(),')}:{err.get('msg')}, "
-        return (
-            jsonify({"error": "Bad Request", "message": msg}),
-            400,
-        )
+            msg.append({
+                "field": err["loc"][0],
+                "error":err["msg"]
+            })
     except Exception as e:
         return (
             jsonify(
