@@ -10,8 +10,8 @@ class App_Config:
     SESSION_TYPE = "sqlalchemy"
     SESSION_USE_SIGNER = True
     SESSION_COOKIE_SECURE = False
-    SESSION_COOKIE_HTTPONLY = False
-    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'None'
     PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=1)  # TODO EDIT to 1
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
