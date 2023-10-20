@@ -9,7 +9,6 @@ from flask import Blueprint, jsonify, request, session
 from MySignalsApp.models import User, Signal
 from binance.um_futures import UMFutures
 from binance.error import ClientError
-from pydantic import ValidationError
 from MySignalsApp import cache, db
 from MySignalsApp.utils import (
     query_paginate_filtered,
@@ -26,8 +25,8 @@ provider = Blueprint("provider", __name__, url_prefix="/provider")
 def get_signals():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+    page = PageQuerySchema(request.args.get("page", 1))
     try:
-        page = PageQuerySchema(request.args.get("page", 1))
         signals = query_paginate_filtered(Signal, page.page, provider=user_id)
 
         return (
@@ -43,14 +42,6 @@ def get_signals():
                 }
             ),
             200,
-        )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
         )
     except Exception as e:
         return (
@@ -141,20 +132,12 @@ def change_wallet():
     data = request.get_json()
 
     user = is_active(User, user_id)
+    data = WalletSchema(**data)
     try:
-        data = WalletSchema(**data)
         user.wallet = data.wallet
         user.update()
 
         return jsonify({"message": "Wallet changed", "status": True}), 200
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -187,16 +170,7 @@ def new_spot_trade():
     user_id = has_permission(session, "Provider")
 
     data = request.get_json()
-    try:
-        data = SpotSchema(**data)
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+    data = SpotSchema(**data)
 
     signal_data = dict(
         symbol=data.symbol,
@@ -242,16 +216,7 @@ def new_futures_trade():
     user_id = has_permission(session, "Provider")
 
     data = request.get_json()
-    try:
-        data = FuturesSchema(**data)
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+    data = FuturesSchema(**data)
 
     signal_data = dict(
         symbol=data.symbol,
@@ -297,8 +262,8 @@ def new_futures_trade():
 def delete_trade(signal_id):
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+    signal_id = IntQuerySchema(id=signal_id)
     try:
-        signal_id = IntQuerySchema(id=signal_id)
         signal = query_one_filtered(Signal, id=signal_id.id)
         if not signal:
             return (
@@ -326,14 +291,6 @@ def delete_trade(signal_id):
 
         signal.delete()
         return jsonify({"message": "success", "signal_id": signal.id, "status": True})
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -351,8 +308,8 @@ def delete_trade(signal_id):
 def deactivate_trade(signal_id):
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+    signal_id = IntQuerySchema(id=signal_id)
     try:
-        signal_id = IntQuerySchema(id=signal_id)
         signal = query_one_filtered(Signal, id=signal_id.id)
         if not signal:
             return (
@@ -380,14 +337,6 @@ def deactivate_trade(signal_id):
         signal.status = False
         signal.update()
         return jsonify({"message": "success", "signal_id": signal.id, "status": True})
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(

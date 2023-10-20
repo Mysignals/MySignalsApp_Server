@@ -68,7 +68,7 @@ def create_app(config_class=App_Config):
         storage_uri=os.environ.get("REDIS"),
     )
 
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
 
     return app

@@ -9,7 +9,6 @@ from MySignalsApp.schemas import (
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
 from binance.error import ClientError
-from pydantic import ValidationError
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
@@ -33,8 +32,8 @@ kryptr = Fernet(KEY.encode("utf-8"))
 
 @main.route("/")
 def get_active_signals():
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
-        page = PageQuerySchema(page=request.args.get("page", 1))
         signals = query_paginate_filtered(Signal, page.page, status=True)
         filtered_signals = []
         if not signals.items:
@@ -79,14 +78,6 @@ def get_active_signals():
             ),
             200,
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         print(e)
         return (
@@ -118,9 +109,9 @@ def place_spot_trade(signal_id):
     )
     signal = ""
     trade_uuid = get_uuid()
+    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
     try:
         # TODO check signal_data.tx_hash that correct signal.provider was paid
-        signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
         signal = query_one_filtered(Signal, id=signal_data.id)
         if not signal:
             return (
@@ -183,14 +174,6 @@ def place_spot_trade(signal_id):
             ),
             200,
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except ClientError as e:
         if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
             spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
@@ -232,8 +215,8 @@ def place_futures_trade(signal_id):
     # TODO check signal_data.tx_hash that correct signal.provider was paid
     signal = ""
     trade_uuid = get_uuid()
+    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
     try:
-        signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
         signal = query_one_filtered(Signal, id=signal_data.id)
         if not signal:
             return (
@@ -310,14 +293,6 @@ def place_futures_trade(signal_id):
             ),
             200,
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except ClientError as e:
         return (
             jsonify(
@@ -348,8 +323,8 @@ def get_signal(signal_id):
     user = is_active(User, user_id)
     data = request.args.get("tx_hash", None)
 
+    signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
     try:
-        signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
         signal = query_one_filtered(Signal, id=signal_data.id)
         placed_signal = PlacedSignals(user_id, signal_data.id)
         placed_signal.insert()
@@ -358,14 +333,6 @@ def get_signal(signal_id):
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
             200,
-        )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
         )
     except Exception as e:
         return (
@@ -386,9 +353,9 @@ def rate_signal(signal_id):
     user = is_active(User, user_id)
     rating = request.get_json()
 
+    signal_data = IntQuerySchema(id=signal_id)
+    rating = RatingSchema(rate=rating.get("rate"))
     try:
-        signal_data = IntQuerySchema(id=signal_id)
-        rating = RatingSchema(rate=rating.get("rate"))
         signal = query_one_filtered(PlacedSignals, signal_id=signal_data.id)
 
         if not signal:
@@ -409,14 +376,6 @@ def rate_signal(signal_id):
         return (
             jsonify({"message": "success", "rating": rating.rate, "status": True}),
             200,
-        )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
         )
     except Exception as e:
         return (

@@ -121,7 +121,7 @@ There are three roles available, role will be provided at login and `base_uri/au
 ---
 <br>
 
-  `GET '/auth/activate/${token}'`
+  `POST '/auth/activate/${token}'`
 - Activates user account
 - Request Arguements: `token`- string jwt code
 - Returns: JSON object containing

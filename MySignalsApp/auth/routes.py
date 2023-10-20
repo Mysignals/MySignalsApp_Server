@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from MySignalsApp import bcrypt, db
 from MySignalsApp.schemas import (
     RegisterSchema,
-    StringQuerySchema,
+    StringUUIDQuerySchema,
     LoginSchema,
     ValidEmailSchema,
     ResetPasswordSchema,
@@ -91,18 +91,9 @@ def register_user():
         )
 
 
-@auth.route("/activate/<string:token>")
+@auth.route("/activate/<string:token>", methods=["POST"])
 def activate_user(token):
-    try:
-        token = StringQuerySchema(token=token)
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+    token = StringUUIDQuerySchema(token=token)
     user = verify_reset_token(User, token.token)
     if user:
         user.is_active = True
@@ -146,8 +137,8 @@ def activate_user(token):
 @auth.route("/login", methods=["POST"])
 def login_user():
     data = request.get_json()
+    data = LoginSchema(**data)
     try:
-        data = LoginSchema(**data)
         user = query_one_filtered(User, user_name=data.user_name_or_mail)
         if not user or not bcrypt.check_password_hash(user.password, data.password):
             user = query_one_filtered(User, email=data.user_name_or_mail)
@@ -189,14 +180,7 @@ def login_user():
             ),
             200,
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+
     except Exception as e:
         return (
             jsonify(
@@ -213,12 +197,11 @@ def login_user():
 @auth.route("/reset_password", methods=["POST"])
 def reset_request():
     data = request.get_json()
+    data = ValidEmailSchema(**data)
     try:
-        data = ValidEmailSchema(**data)
-
         user = query_one_filtered(User, email=data.email)
         if user:
-            send_email(user, "auth.reset_token")
+            send_email(user, "auth.reset_password")
 
             return (
                 jsonify(
@@ -238,14 +221,7 @@ def reset_request():
             ),
             200,
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+
     except Exception as e:
         return (
             jsonify(
@@ -262,28 +238,23 @@ def reset_request():
 @auth.route("/reset_password/<string:token>", methods=["POST"])
 def reset_password(token):
     data = request.get_json()
+    data = ResetPasswordSchema(token=token, **data)
     try:
-        data = ResetPasswordSchema(token=token, **data)
-
         user = verify_reset_token(User, data.token)
         if user:
-            user.password = bcrypt.generate_password_hash(data.password)
+            user.password = bcrypt.generate_password_hash(data.password).decode("utf-8")
             user.update()
             session.pop("user", None)
             return jsonify({"message": "Password changed", "status": True}), 200
 
         return (
             jsonify(
-                {"error": "Unauthorized", "message": "Invalid token", "status": False}
+                {
+                    "error": "Unauthorized",
+                    "message": "Token is not valid or has already been used",
+                    "status": False,
+                }
             ),
-            400,
-        )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,
         )
     except Exception as e:
@@ -365,9 +336,8 @@ def update_keys():
         )
 
     data = request.get_json()
+    data = UpdateKeysSchema(**data)
     try:
-        data = UpdateKeysSchema(**data)
-
         user = query_one_filtered(User, id=user_id)
         if not user:
             return (
@@ -393,14 +363,7 @@ def update_keys():
                 "status": True,
             }
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
+
     except Exception as e:
         return (
             jsonify(

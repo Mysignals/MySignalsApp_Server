@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from pydantic import ValidationError
 from MySignalsApp import db
 
 error = Blueprint("error", __name__)
@@ -24,6 +25,17 @@ def resource_not_found(err):
     return (
         jsonify({"error": err.error, "message": err.message, "status": False}),
         err.code,
+    )
+
+
+@error.app_errorhandler(ValidationError)
+def input_validation_error(e):
+    msg = []
+    for err in e.errors():
+        msg.append({"field": err["loc"][0], "error": err["msg"]})
+    return (
+        jsonify({"error": "Bad Request", "message": msg, "status": False}),
+        400,
     )
 
 

@@ -1,6 +1,6 @@
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from MySignalsApp.errors.handlers import UtilError
-from MySignalsApp.models import PlacedSignals, Signal
+from MySignalsApp.models import PlacedSignals, Signal, UserTokens, get_uuid
+from datetime import datetime, timedelta
 from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
@@ -42,18 +42,28 @@ def query_paginate_filtered(table, page, **kwargs):
 
 
 # jwt helpers
-def get_reset_token(user, expires_sec=1800):
-    s = Serializer(current_app.config["SECRET_KEY"], expires_sec)
-    return s.dumps({"user_id": user.id}).decode("utf-8")
+def get_reset_token(user, expires=datetime.utcnow() + timedelta(hours=1)):
+    token = get_uuid()
+    token_data = UserTokens(user_id=user.id, token=token, expiration=expires)
+    token_data.insert()
+    return token
 
 
-def verify_reset_token(user, token):
-    s = Serializer(current_app.config["SECRET_KEY"])
+def verify_reset_token(user_table, token):
     try:
-        user_id = s.loads(token)["user_id"]
-    except:
-        return None
-    return query_one_filtered(user, id=user_id)
+        token_data = query_one_filtered(UserTokens, token=str(token))
+        if not token_data:
+            return None
+
+        if datetime.utcnow() <= token_data.expiration:
+            user = query_one_filtered(user_table, id=token_data.user_id)
+            token_data.delete()
+            return user
+        else:
+            token_data.delete()
+            return None
+    except Exception:
+        raise UtilError("Internal server error", 500, "It's not you it's us")
 
 
 # Flask Mail helpers
@@ -97,7 +107,7 @@ def is_active(table, user_id):
             raise UtilError("Unauthorized", 401, "Your account is not active")
         return user
 
-    except Exception as e:
+    except Exception:
         raise UtilError("Internal server error", 500, "It's not you it's us")
 
 

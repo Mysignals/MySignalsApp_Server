@@ -22,19 +22,20 @@ class Roles(enum.Enum):
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(
-        db.String(34), primary_key=True, unique=True, nullable=False, default=get_uuid
+        db.String(40), primary_key=True, unique=True, nullable=False, default=get_uuid
     )
     user_name = db.Column(db.String(345), unique=True, nullable=False)
     email = db.Column(db.String(345), unique=True, nullable=False)
     password = db.Column(db.String(64), nullable=False)
-    api_key = db.Column(db.String(), nullable=False)
-    api_secret = db.Column(db.String(), nullable=False)
+    api_key = db.Column(db.String(90), nullable=False)
+    api_secret = db.Column(db.String(90), nullable=False)
     wallet = db.Column(db.String(43), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     signals = db.Relationship("Signal", backref="user", lazy=True)
     placed_signals = db.Relationship("PlacedSignals", backref="user", lazy=True)
+    tokens = db.Relationship("UserTokens", backref="user", lazy=True)
 
     def __init__(
         self,
@@ -155,4 +156,40 @@ class PlacedSignals(db.Model):
             "signal_id": self.signal_id,
             "rating": self.rating,
             "date_created": self.date_created,
+        }
+
+
+class UserTokens(db.Model):
+    __tablename__ = "usertokens"
+
+    id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
+    user_id = db.Column(db.String(), db.ForeignKey("users.id"), nullable=False)
+    token = db.Column(db.String(), nullable=False, unique=True)
+    expiration = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, user_id, token, expiration):
+        self.user_id = user_id
+        self.token = token
+        self.expiration = expiration
+
+    def __repr__(self):
+        return f"user_id({self.user_id}), token({self.token}), expiration {self.expiration})"
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "token": self.token,
+            "expiration": self.expiration,
         }

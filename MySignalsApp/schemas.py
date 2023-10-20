@@ -1,4 +1,5 @@
 from pydantic import BaseModel, constr, EmailStr, validator
+from uuid import UUID
 
 
 class RegisterSchema(BaseModel):
@@ -34,8 +35,12 @@ class UpdateKeysSchema(BaseModel):
     api_secret: constr(max_length=100)
 
 
-class StringQuerySchema(BaseModel):
-    token: str
+class StringUUIDQuerySchema(BaseModel):
+    token: UUID
+
+    @validator("token")
+    def return_hex(cls, v):
+        return v.hex
 
 
 class IntQuerySchema(BaseModel):
@@ -72,7 +77,7 @@ class ValidEmailSchema(BaseModel):
         return v
 
 
-class ResetPasswordSchema(StringQuerySchema, ValidEmailSchema):
+class ResetPasswordSchema(StringUUIDQuerySchema, ValidEmailSchema):
     password: constr(max_length=64, min_length=8)
     confirm_password: constr(max_length=64, min_length=8)
 

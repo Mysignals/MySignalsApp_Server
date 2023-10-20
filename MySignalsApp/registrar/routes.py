@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from MySignalsApp.schemas import ValidEmailSchema, PageQuerySchema
 from MySignalsApp.models import User, Roles
-from pydantic import ValidationError
 from MySignalsApp.utils import (
     query_one_filtered,
     query_paginate_filtered,
@@ -21,8 +20,8 @@ def add_provider():
 
     data = request.get_json()
 
+    provider_email = ValidEmailSchema(**data)
     try:
-        provider_email = ValidEmailSchema(**data)
         user = query_one_filtered(User, email=provider_email.email)
         if not user:
             return (
@@ -64,14 +63,6 @@ def add_provider():
         return jsonify(
             {"message": "success", "provider": provider_email.email, "status": True}
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -92,8 +83,8 @@ def add_registrar():
 
     data = request.get_json()
 
+    registrar_email = ValidEmailSchema(**data)
     try:
-        registrar_email = ValidEmailSchema(**data)
         user = query_one_filtered(User, email=registrar_email.email)
         if not user:
             return (
@@ -135,14 +126,6 @@ def add_registrar():
         return jsonify(
             {"message": "success", "registrar": registrar_email.email, "status": True}
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -163,8 +146,8 @@ def drop_role():
 
     data = request.get_json()
 
+    user_email = ValidEmailSchema(**data)
     try:
-        user_email = ValidEmailSchema(**data)
         user = query_one_filtered(User, email=user_email.email)
         if not user:
             return (
@@ -206,14 +189,6 @@ def drop_role():
         return jsonify(
             {"message": "success", "registrar": user_email.email, "status": True}
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -231,8 +206,8 @@ def drop_role():
 def get_providers():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
+    page = PageQuerySchema(request.args.get("page", 1))
     try:
-        page = PageQuerySchema(request.args.get("page", 1))
         providers = query_paginate_filtered(User, page.page, roles=Roles.PROVIDER)
         if not providers.items:
             return jsonify(
@@ -255,14 +230,6 @@ def get_providers():
                 "status": True,
             }
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -280,8 +247,8 @@ def get_providers():
 def get_registrars():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
+    page = PageQuerySchema(request.args.get("page", 1))
     try:
-        page = PageQuerySchema(request.args.get("page", 1))
         registrars = query_paginate_filtered(User, page.page, roles=Roles.REGISTRAR)
         if not registrars.items:
             return jsonify(
@@ -304,14 +271,6 @@ def get_registrars():
                 "status": True,
             }
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -329,8 +288,8 @@ def get_registrars():
 def get_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
+    page = PageQuerySchema(request.args.get("page", 1))
     try:
-        page = PageQuerySchema(request.args.get("page", 1))
         users = query_paginate_filtered(User, page.page, roles=Roles.USER)
         if not users.items:
             return jsonify(
@@ -353,14 +312,6 @@ def get_users():
                 "status": True,
             }
         )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
-        )
     except Exception as e:
         return (
             jsonify(
@@ -378,8 +329,8 @@ def get_users():
 def get_all_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
+    page = PageQuerySchema(request.args.get("page", 1))
     try:
-        page = PageQuerySchema(request.args.get("page", 1))
         users = query_paginated(User, page.page)
         if not users.items:
             return jsonify(
@@ -401,14 +352,6 @@ def get_all_users():
                 "total": users.total if users.total else 0,
                 "status": True,
             }
-        )
-    except ValidationError as e:
-        msg = []
-        for err in e.errors():
-            msg.append({"field": err["loc"][0], "error": err["msg"]})
-        return (
-            jsonify({"error": "Bad Request", "message": msg, "status": False}),
-            400,
         )
     except Exception as e:
         return (
