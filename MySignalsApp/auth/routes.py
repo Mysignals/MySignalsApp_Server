@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint, session,render_template
+from flask import jsonify, request, Blueprint, session, render_template
 from cryptography.fernet import Fernet
 from MySignalsApp.models import User
 from pydantic import ValidationError
@@ -99,7 +99,12 @@ def activate_user(token):
         user.is_active = True
         try:
             user.update()
-            return render_template("activated.html",username=user.user_name,frontend="127.0.0.1")
+            return (
+                render_template(
+                    "activated.html", username=user.user_name, frontend="127.0.0.1"
+                ),
+                200,
+            )
 
         except Exception as e:
             return (
@@ -114,12 +119,10 @@ def activate_user(token):
             )
 
     return (
-        jsonify(
-            {
-                "error": "Forbidden",
-                "message": "Token is not valid or has already been used",
-                "status": False,
-            }
+        render_template(
+            "activate_error.html",
+            message="Token is not valid or has already been used",
+            frontend="127.0.0.1",
         ),
         403,
     )

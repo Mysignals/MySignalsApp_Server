@@ -23,10 +23,10 @@ mail = Mail()
 cache = Cache()
 
 limiter = Limiter(
-        key_func=get_remote_address,
-        default_limits=["2 per second", "200 per day", "50 per hour"],
-        storage_uri=os.environ.get("REDIS"),
-    )
+    key_func=get_remote_address,
+    default_limits=["2 per second", "200 per day", "50 per hour"],
+    storage_uri=os.environ.get("REDIS"),
+)
 
 
 def create_app(config_class=App_Config):
@@ -53,7 +53,6 @@ def create_app(config_class=App_Config):
     migrate = Migrate(app, db)
     # Initialize cache
     cache.init_app(app)
-
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth

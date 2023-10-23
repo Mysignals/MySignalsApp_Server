@@ -1,7 +1,7 @@
 from MySignalsApp.errors.handlers import UtilError
 from MySignalsApp.models import PlacedSignals, Signal, UserTokens, get_uuid
 from datetime import datetime, timedelta
-from flask import current_app,url_for, render_template
+from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
 from threading import Thread
@@ -69,9 +69,11 @@ def verify_reset_token(user_table, token):
 
 # Flask Mail helpers
 
-def send_async_mail(app,msg):
+
+def send_async_mail(app, msg):
     with app.app_context():
         mail.send(msg)
+
 
 def send_email(user, url_func):
     token = get_reset_token(user)
@@ -81,7 +83,9 @@ def send_email(user, url_func):
     msg.html = render_template(
         "mail_template.html", token=url_for(url_func, token=token, _external=True)
     )
-    Thread(target=send_async_mail,args=(current_app._get_current_object(),msg)).start()
+    Thread(
+        target=send_async_mail, args=(current_app._get_current_object(), msg)
+    ).start()
     # mail.send(msg)
     # print(url_for(url_func, token=token, _external=True))
 
