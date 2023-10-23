@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint, session
+from flask import jsonify, request, Blueprint, session,render_template
 from cryptography.fernet import Fernet
 from MySignalsApp.models import User
 from pydantic import ValidationError
@@ -91,7 +91,7 @@ def register_user():
         )
 
 
-@auth.route("/activate/<string:token>", methods=["POST"])
+@auth.route("/activate/<string:token>")
 def activate_user(token):
     token = StringUUIDQuerySchema(token=token)
     user = verify_reset_token(User, token.token)
@@ -99,17 +99,8 @@ def activate_user(token):
         user.is_active = True
         try:
             user.update()
-            return (
-                jsonify(
-                    {
-                        "message": "Success",
-                        "user_name": user.user_name,
-                        "is_active": user.is_active,
-                        "status": True,
-                    }
-                ),
-                200,
-            )
+            return render_template("activated.html",username=user.user_name,frontend="127.0.0.1")
+
         except Exception as e:
             return (
                 jsonify(

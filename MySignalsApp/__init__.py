@@ -22,6 +22,12 @@ mail = Mail()
 
 cache = Cache()
 
+limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=["2 per second", "200 per day", "50 per hour"],
+        storage_uri=os.environ.get("REDIS"),
+    )
+
 
 def create_app(config_class=App_Config):
     """
@@ -48,6 +54,7 @@ def create_app(config_class=App_Config):
     # Initialize cache
     cache.init_app(app)
 
+
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
     from MySignalsApp.provider.routes import provider
@@ -61,12 +68,8 @@ def create_app(config_class=App_Config):
     app.register_blueprint(registrar)
     app.register_blueprint(error)
 
-    limiter = Limiter(
-        key_func=get_remote_address,
-        app=app,
-        default_limits=["2 per second", "200 per day", "50 per hour"],
-        storage_uri=os.environ.get("REDIS"),
-    )
+    # Initialize rate limiter
+    limiter.init_app(app)
 
     # with app.app_context():
     #     db.create_all()
