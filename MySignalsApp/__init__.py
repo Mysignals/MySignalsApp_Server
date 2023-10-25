@@ -3,6 +3,7 @@ from MySignalsApp.config import App_Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_session import Session
+from flask_admin import Admin
 from flask_limiter import Limiter
 from flask import Flask, session
 from flask_caching import Cache
@@ -21,6 +22,8 @@ sess = Session()
 mail = Mail()
 
 cache = Cache()
+
+admin = Admin(name="MySignalsApp", template_mode="bootstrap3")
 
 limiter = Limiter(
     key_func=get_remote_address,
@@ -53,6 +56,8 @@ def create_app(config_class=App_Config):
     migrate = Migrate(app, db)
     # Initialize cache
     cache.init_app(app)
+    # Initialize Admin
+    admin.init_app(app)
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
@@ -70,7 +75,7 @@ def create_app(config_class=App_Config):
     # Initialize rate limiter
     limiter.init_app(app)
 
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
 
     return app

@@ -277,7 +277,6 @@ def logout_user():
 def see_sess():
     user = session.get("user")
 
-
     if not user:
         return (
             jsonify(

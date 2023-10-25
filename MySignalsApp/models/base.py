@@ -2,6 +2,7 @@ from MySignalsApp import db
 from datetime import datetime
 from uuid import uuid4
 
+
 def get_uuid():
     return uuid4().hex
 
@@ -20,7 +21,6 @@ class BaseModel(db.Model):
 
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-
     def insert(self):
         """Insert the current object into the database"""
         db.session.add(self)
@@ -38,6 +38,4 @@ class BaseModel(db.Model):
     def format(self):
         """Format the object's attributes as a dictionary"""
         # This method should be overridden in subclasses
-        raise NotImplementedError(
-            "Subclasses must implement the 'format' method"
-        )
+        raise NotImplementedError("Subclasses must implement the 'format' method")

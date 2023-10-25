@@ -29,3 +29,5 @@ class App_Config:
 
     CACHE_TYPE = "FileSystemCache"
     CACHE_DIR = "cache"
+
+    FLASK_ADMIN_SWATCH = "slate"

@@ -1,6 +1,8 @@
 from sqlalchemy.dialects.postgresql import JSON
 from MySignalsApp.models.base import BaseModel
-from MySignalsApp import db
+from MySignalsApp import db, admin
+from flask import session, abort
+from flask_admin.contrib.sqla import ModelView
 
 
 class Signal(BaseModel):
@@ -22,7 +24,6 @@ class Signal(BaseModel):
     def __repr__(self):
         return f"signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.provider.user_name}))"
 
-
     def format(self):
         return {
             "id": self.id,
@@ -32,3 +33,28 @@ class Signal(BaseModel):
             "provider": self.user.wallet,
             "date_created": self.date_created,
         }
+
+
+class SignalModelView(ModelView):
+    def is_accessible(self):
+        user = session.get("user") if session else None
+        return "Registrar" in user.get("permission") if user else False
+
+    # def _handle_view(self, name, **kwargs):
+    #     print(self.is_accessible())
+    #     if not self.is_accessible():
+    #         abort(403)
+    #     else:
+    #         abort(403)
+
+    def inaccessible_callback(self, name, **kwargs):
+        abort(403)
+
+    can_create = False
+    column_searchable_list = ["provider"]
+    column_filters = ["is_spot", "status"]
+    column_list = ("signal", "is_spot", "status", "provider", "date_created")
+    form_columns = ("signal", "status", "provider", "date_created")
+
+
+admin.add_view(SignalModelView(Signal, db.session))

@@ -1,6 +1,9 @@
 from MySignalsApp.models.base import BaseModel
-from MySignalsApp import db
+from MySignalsApp import db, admin
+from flask import session, abort
+from flask_admin.contrib.sqla import ModelView
 import enum
+
 
 class Roles(enum.Enum):
     USER = "User"
@@ -25,7 +28,9 @@ class User(BaseModel):
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
     signals = db.Relationship("Signal", backref="user", lazy=True)
     placed_signals = db.Relationship("PlacedSignals", backref="user", lazy=True)
-    tokens = db.Relationship("UserTokens", backref="user", lazy=True)
+    tokens = db.Relationship(
+        "UserTokens", backref="user", lazy=True, cascade="all, delete-orphan"
+    )
 
     def __init__(
         self,
@@ -62,3 +67,35 @@ class User(BaseModel):
             "has_api_keys": True if self.api_key and self.api_secret else False,
             "date_created": self.date_created,
         }
+
+
+class UserModelView(ModelView):
+    def is_accessible(self):
+        user = session.get("user") if session else None
+        return "Registrar" in user.get("permission") if user else False
+
+    # def _handle_view(self, name, **kwargs):
+    #     print(self.is_accessible())
+    #     if not self.is_accessible():
+    #         abort(403)
+    #     else:
+    #         abort(403)
+
+    def inaccessible_callback(self, name, **kwargs):
+        abort(403)
+
+    can_create = False
+    column_searchable_list = ["user_name", "email"]
+    column_filters = ["is_active", "roles"]
+    column_list = ("user_name", "email", "wallet", "is_active", "roles", "date_created")
+    form_columns = (
+        "user_name",
+        "email",
+        "wallet",
+        "is_active",
+        "roles",
+        "date_created",
+    )
+
+
+admin.add_view(UserModelView(User, db.session))
