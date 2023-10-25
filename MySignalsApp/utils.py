@@ -1,5 +1,8 @@
 from MySignalsApp.errors.handlers import UtilError
-from MySignalsApp.models import PlacedSignals, Signal, UserTokens, get_uuid
+from MySignalsApp.models.base import get_uuid
+from MySignalsApp.models.signals import Signal
+from MySignalsApp.models.placed_signals import PlacedSignals
+from MySignalsApp.models.user_tokens import UserTokens
 from datetime import datetime, timedelta
 from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail

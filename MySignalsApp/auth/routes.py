@@ -1,6 +1,6 @@
 from flask import jsonify, request, Blueprint, session, render_template
 from cryptography.fernet import Fernet
-from MySignalsApp.models import User
+from MySignalsApp.models.users import User
 from pydantic import ValidationError
 from MySignalsApp import bcrypt, db
 from MySignalsApp.schemas import (
@@ -276,6 +276,7 @@ def logout_user():
 @auth.route("/@me")
 def see_sess():
     user = session.get("user")
+
 
     if not user:
         return (

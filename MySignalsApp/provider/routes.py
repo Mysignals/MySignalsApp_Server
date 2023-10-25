@@ -6,7 +6,8 @@ from MySignalsApp.schemas import (
     PageQuerySchema,
 )
 from flask import Blueprint, jsonify, request, session
-from MySignalsApp.models import User, Signal
+from MySignalsApp.models.users import User
+from MySignalsApp.models.signals import Signal
 from binance.um_futures import UMFutures
 from binance.error import ClientError
 from MySignalsApp import cache, db

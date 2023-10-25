@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from MySignalsApp.schemas import ValidEmailSchema, PageQuerySchema
-from MySignalsApp.models import User, Roles
+from MySignalsApp.models.users import User, Roles
 from MySignalsApp.utils import (
     query_one_filtered,
     query_paginate_filtered,
