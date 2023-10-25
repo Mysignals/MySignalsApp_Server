@@ -75,7 +75,7 @@ def create_app(config_class=App_Config):
     # Initialize rate limiter
     limiter.init_app(app)
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app
