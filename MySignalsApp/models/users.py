@@ -56,7 +56,7 @@ class User(BaseModel):
         return f"user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_created({self.date_created}))"
 
     def __str__(self):
-        return self.email
+        return f"{self.email}"
 
     def format(self):
         return {

@@ -54,7 +54,7 @@ class SignalModelView(ModelView):
     can_create = False
     column_searchable_list = ["provider"]
     column_filters = ["is_spot", "status"]
-    column_list = ("signal", "is_spot", "status", "provider", "date_created")
+    column_list = ("id", "signal", "is_spot", "status", "provider", "date_created")
     form_columns = ("signal", "status", "provider", "date_created")
 
 
