@@ -59,7 +59,7 @@ def add_provider():
             )
 
         user.roles = Roles.PROVIDER
-        user.insert()
+        user.update()
         return jsonify(
             {"message": "success", "provider": provider_email.email, "status": True}
         )
@@ -122,7 +122,7 @@ def add_registrar():
             )
 
         user.roles = Roles.REGISTRAR
-        user.insert()
+        user.update()
         return jsonify(
             {"message": "success", "registrar": registrar_email.email, "status": True}
         )
@@ -185,7 +185,7 @@ def drop_role():
             )
 
         user.roles = Roles.USER
-        user.insert()
+        user.update()
         return jsonify(
             {"message": "success", "registrar": user_email.email, "status": True}
         )

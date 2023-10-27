@@ -1,0 +1,17 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+{{super()}}
+
+<div style="display: flex; flex-direction: column; text-align: center; justify-content: center;">
+    <form action="/admin/login" method="post" >
+        <label for="email">Email: </label>
+        <input type="email" name="email" id="email" placeholder="admin@mail.com">
+
+        <label for="password">password: </label>
+        <input type="password" name="password" id="password">
+
+        <button type="submit">login</button>
+    </form>
+</div>
+{% endblock body %}
