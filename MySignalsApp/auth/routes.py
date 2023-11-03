@@ -2,7 +2,7 @@ from flask import jsonify, request, Blueprint, session, render_template
 from cryptography.fernet import Fernet
 from MySignalsApp.models.users import User
 from pydantic import ValidationError
-from MySignalsApp import bcrypt, db
+from MySignalsApp import bcrypt, limiter
 from MySignalsApp.schemas import (
     RegisterSchema,
     StringUUIDQuerySchema,
@@ -20,6 +20,7 @@ import os
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
+limiter.limit("2/second", override_defaults=False)(auth)
 
 
 KEY = os.getenv("FERNET_KEY")

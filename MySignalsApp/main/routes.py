@@ -20,13 +20,13 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
-from MySignalsApp import db
+from MySignalsApp import limiter
 from time import sleep
 import os
 
 
 main = Blueprint("main", __name__)
-
+limiter.limit("2/second", override_defaults=False)(main)
 
 KEY = os.getenv("FERNET_KEY")
 

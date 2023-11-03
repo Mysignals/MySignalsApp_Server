@@ -141,4 +141,4 @@ def calculate_rating(provider_id):
     rating_total = 0
     for rating in ratings:
         rating_total += rating
-    return round(rating_total / len(ratings), 2)
+    return round(rating_total / (len(ratings) if ratings else 1), 2)

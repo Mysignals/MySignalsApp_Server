@@ -10,7 +10,7 @@ from MySignalsApp.models.users import User
 from MySignalsApp.models.signals import Signal
 from binance.um_futures import UMFutures
 from binance.error import ClientError
-from MySignalsApp import cache, db
+from MySignalsApp import cache, limiter
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
@@ -20,13 +20,14 @@ from MySignalsApp.utils import (
 from binance.spot import Spot
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
+limiter.limit("2/second", override_defaults=False)(provider)
 
 
 @provider.route("/signals")
 def get_signals():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
-    page = PageQuerySchema(request.args.get("page", 1))
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         signals = query_paginate_filtered(Signal, page.page, provider=user_id)
 

@@ -8,9 +8,10 @@ from MySignalsApp.utils import (
     has_permission,
     is_active,
 )
-from MySignalsApp import db
+from MySignalsApp import limiter
 
 registrar = Blueprint("registrar", __name__, url_prefix="/registrar")
+limiter.limit("20/second", override_defaults=True)(registrar)
 
 
 @registrar.route("/provider/new", methods=["POST"])
@@ -206,7 +207,7 @@ def drop_role():
 def get_providers():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = PageQuerySchema(request.args.get("page", 1))
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         providers = query_paginate_filtered(User, page.page, roles=Roles.PROVIDER)
         if not providers.items:
@@ -247,7 +248,7 @@ def get_providers():
 def get_registrars():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = PageQuerySchema(request.args.get("page", 1))
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         registrars = query_paginate_filtered(User, page.page, roles=Roles.REGISTRAR)
         if not registrars.items:
@@ -288,7 +289,7 @@ def get_registrars():
 def get_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = PageQuerySchema(request.args.get("page", 1))
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         users = query_paginate_filtered(User, page.page, roles=Roles.USER)
         if not users.items:
@@ -329,7 +330,7 @@ def get_users():
 def get_all_users():
     registrar_id = has_permission(session, "Registrar")
     is_active(User, registrar_id)
-    page = PageQuerySchema(request.args.get("page", 1))
+    page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         users = query_paginated(User, page.page)
         if not users.items:
