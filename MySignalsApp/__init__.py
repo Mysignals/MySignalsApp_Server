@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_session import Session
 from flask_admin import Admin
 from flask_limiter import Limiter
-from flask import Flask, session
+from flask import Flask, session,send_from_directory
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
@@ -75,7 +75,12 @@ def create_app(config_class=App_Config):
     # Initialize rate limiter
     limiter.init_app(app)
 
-    # with app.app_context():
-    #     db.create_all()
+    @app.route('/admin/static/<path:filename>')
+    @limiter.limit("20/second",override_defaults=True)
+    def admin_static(filename):
+        return send_from_directory('static',filename)
+
+    with app.app_context():
+        db.create_all()
 
     return app

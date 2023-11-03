@@ -11,7 +11,7 @@ from MySignalsApp.utils import (
 from MySignalsApp import limiter
 
 registrar = Blueprint("registrar", __name__, url_prefix="/registrar")
-limiter.limit("20/second", override_defaults=True)(registrar)
+limiter.limit("2/second", override_defaults=False)(registrar)
 
 
 @registrar.route("/provider/new", methods=["POST"])

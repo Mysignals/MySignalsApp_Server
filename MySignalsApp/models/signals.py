@@ -8,7 +8,7 @@ from flask_admin.contrib.sqla import ModelView
 class Signal(BaseModel):
     __tablename__ = "signals"
 
-    id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
+    id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False,index=True)
     signal = db.Column(JSON, nullable=False)
     is_spot = db.Column(db.Boolean(), nullable=False, default=True)
     status = db.Column(db.Boolean(), nullable=False, default=False)
