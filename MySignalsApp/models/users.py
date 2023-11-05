@@ -20,8 +20,8 @@ class Roles(enum.Enum):
 class User(BaseModel):
     __tablename__ = "users"
 
-    user_name = db.Column(db.String(345), unique=True, nullable=False,index=True)
-    email = db.Column(db.String(345), unique=True, nullable=False,index=True)
+    user_name = db.Column(db.String(345), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(345), unique=True, nullable=False, index=True)
     password = db.Column(db.String(64), nullable=False)
     api_key = db.Column(db.String(90), nullable=False)
     api_secret = db.Column(db.String(90), nullable=False)

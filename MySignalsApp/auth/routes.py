@@ -20,7 +20,6 @@ import os
 
 
 auth = Blueprint("auth", __name__, url_prefix="/auth")
-limiter.limit("2/second", override_defaults=False)(auth)
 
 
 KEY = os.getenv("FERNET_KEY")

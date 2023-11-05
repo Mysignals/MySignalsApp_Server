@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_session import Session
 from flask_admin import Admin
 from flask_limiter import Limiter
-from flask import Flask, session,send_from_directory
+from flask import Flask, session, send_from_directory
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
@@ -27,7 +27,7 @@ admin = Admin(name="MySignalsApp", template_mode="bootstrap3")
 
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["200 per day", "50 per hour", "3 per second"],
     storage_uri=os.environ.get("REDIS"),
 )
 
@@ -74,11 +74,7 @@ def create_app(config_class=App_Config):
 
     # Initialize rate limiter
     limiter.init_app(app)
-
-    @app.route('/admin/static/<path:filename>')
-    @limiter.limit("20/second",override_defaults=True)
-    def admin_static(filename):
-        return send_from_directory('static',filename)
+    limiter.limit("25/second", override_defaults=True)(admin.index_view.blueprint)
 
     with app.app_context():
         db.create_all()

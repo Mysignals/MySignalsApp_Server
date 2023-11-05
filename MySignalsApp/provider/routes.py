@@ -20,7 +20,6 @@ from MySignalsApp.utils import (
 from binance.spot import Spot
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
-limiter.limit("2/second", override_defaults=False)(provider)
 
 
 @provider.route("/signals")

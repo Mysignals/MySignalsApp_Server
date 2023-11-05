@@ -26,7 +26,6 @@ import os
 
 
 main = Blueprint("main", __name__)
-limiter.limit("2/second", override_defaults=False)(main)
 
 KEY = os.getenv("FERNET_KEY")
 
