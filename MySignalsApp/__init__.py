@@ -76,7 +76,7 @@ def create_app(config_class=App_Config):
     limiter.init_app(app)
     limiter.limit("25/second", override_defaults=True)(admin.index_view.blueprint)
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app
