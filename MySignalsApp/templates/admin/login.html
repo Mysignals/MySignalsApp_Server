@@ -5,6 +5,7 @@
 
 <div style="display: flex; flex-direction: column; text-align: center; justify-content: center;">
     <form action="/admin/login" method="post" >
+        <input type="hidden" name="_csrf_token" value="{{csrf_token()}}">
         <label for="email">Email: </label>
         <input type="email" name="email" id="email" placeholder="admin@mail.com">
 

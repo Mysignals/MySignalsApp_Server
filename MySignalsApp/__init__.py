@@ -1,11 +1,12 @@
 from flask_limiter.util import get_remote_address
 from MySignalsApp.config import App_Config
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_admin import Admin
 from flask_limiter import Limiter
-from flask import Flask, session, send_from_directory
+from flask import Flask, session
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
@@ -30,6 +31,8 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour", "3 per second"],
     storage_uri=os.environ.get("REDIS"),
 )
+
+csrf=CSRFProtect()
 
 
 def create_app(config_class=App_Config):
@@ -58,6 +61,8 @@ def create_app(config_class=App_Config):
     cache.init_app(app)
     # Initialize Admin
     admin.init_app(app)
+    # initialize csrf
+    csrf.init_app(app)
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
