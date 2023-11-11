@@ -101,7 +101,7 @@ def activate_user(token):
             user.update()
             return (
                 render_template(
-                    "activated.html", username=user.user_name, frontend="127.0.0.1"
+                    "activated.html", username=user.user_name, frontend=os.environ.get("FRONTEND_URL","127.0.0.1")
                 ),
                 200,
             )
@@ -122,7 +122,7 @@ def activate_user(token):
         render_template(
             "activate_error.html",
             message="Token is not valid or has already been used",
-            frontend="127.0.0.1",
+            frontend=os.environ.get("FRONTEND_URL","127.0.0.1")
         ),
         403,
     )
