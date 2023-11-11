@@ -1,4 +1,5 @@
-from pydantic import BaseModel, constr, EmailStr, validator
+from pydantic import BaseModel, constr, EmailStr, validator, EmailError
+from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from uuid import UUID
 
 
@@ -14,8 +15,10 @@ class RegisterSchema(BaseModel):
 
     @validator("email")
     def valid_email_length(cls, v):
-        if len(v) > 345:
-            raise ValueError
+        try:
+            validate_email(v, check_deliverability=True)
+        except (EmailNotValidError, EmailUndeliverableError) as e:
+            raise EmailError() from e
         return v
 
     @validator("confirm_password")
@@ -66,6 +69,12 @@ class PageQuerySchema(BaseModel):
 class WalletSchema(BaseModel):
     wallet: constr(min_length=42, max_length=42)
 
+    @validator("wallet")
+    def valid_tx_hash(cls, v):
+        if not ("0x" in v[:2]):
+            raise ValueError("Invalid Wallet Address")
+        return v
+
 
 class ValidEmailSchema(BaseModel):
     email: EmailStr
@@ -90,6 +99,12 @@ class ResetPasswordSchema(StringUUIDQuerySchema, ValidEmailSchema):
 
 class ValidTxSchema(IntQuerySchema):
     tx_hash: constr(min_length=66, max_length=66)
+
+    @validator("tx_hash")
+    def valid_tx_hash(cls, v):
+        if not ("0x" in v[:2]):
+            raise ValueError("Invalid tx hash")
+        return v
 
 
 class SpotSchema(BaseModel):

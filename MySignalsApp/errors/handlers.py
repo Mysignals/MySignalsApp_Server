@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from pydantic import ValidationError
+from web3.exceptions import TransactionNotFound
 from MySignalsApp import db
 
 error = Blueprint("error", __name__)
@@ -36,6 +37,14 @@ def input_validation_error(e):
     return (
         jsonify({"error": "Bad Request", "message": msg, "status": False}),
         400,
+    )
+
+
+@error.app_errorhandler(TransactionNotFound)
+def transaction_not_fount(e):
+    return (
+        jsonify({"error": "Resource not found", "message": str(e), "status": False}),
+        404,
     )
 
 

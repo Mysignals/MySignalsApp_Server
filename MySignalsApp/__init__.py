@@ -1,7 +1,6 @@
 from flask_limiter.util import get_remote_address
 from MySignalsApp.config import App_Config
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_admin import Admin
@@ -11,8 +10,11 @@ from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from flask_cors import CORS
+from dotenv import load_dotenv
+import json
 import os
 
+load_dotenv(".env")
 
 db = SQLAlchemy()
 
@@ -31,8 +33,6 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour", "3 per second"],
     storage_uri=os.environ.get("REDIS"),
 )
-
-csrf=CSRFProtect()
 
 
 def create_app(config_class=App_Config):
@@ -61,8 +61,6 @@ def create_app(config_class=App_Config):
     cache.init_app(app)
     # Initialize Admin
     admin.init_app(app)
-    # initialize csrf
-    csrf.init_app(app)
 
     from MySignalsApp.main.routes import main
     from MySignalsApp.auth.routes import auth
@@ -85,3 +83,12 @@ def create_app(config_class=App_Config):
     #     db.create_all()
 
     return app
+
+
+def get_contract_details():
+    with open("MySignalsApp/contract_details.json") as f:
+        data = json.load(f)
+    return data["address"], data["abi"]
+
+
+contract_address, abi = get_contract_details()

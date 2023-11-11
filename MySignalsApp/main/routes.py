@@ -20,7 +20,8 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
-from MySignalsApp import limiter
+from MySignalsApp.errors.handlers import UtilError
+from MySignalsApp.web3_helpers import verify_compensation_details
 from time import sleep
 import os
 
@@ -111,10 +112,23 @@ def place_spot_trade(signal_id):
     )
     signal = ""
     trade_uuid = get_uuid()
-    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+    signal_data = IntQuerySchema(id=signal_id)
     try:
-        # TODO check signal_data.tx_hash that correct signal.provider was paid
-        signal = query_one_filtered(Signal, id=signal_data.id)
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
+        if not placed_signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "Trade not found, Have you purchased this trade?",
+                        "status": False,
+                    }
+                ),
+                404,
+            )
+        signal = query_one_filtered(Signal, id=placed_signal.signal_id)
         if not signal:
             return (
                 jsonify(
@@ -203,8 +217,6 @@ def place_spot_trade(signal_id):
 def place_futures_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    #  TODO uncomment when hash check is implemented
-    tx_hash = (request.get_json()).get("tx_hash")
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
@@ -214,12 +226,26 @@ def place_futures_trade(signal_id):
         secret=user_api_secret,
         base_url="https://testnet.binancefuture.com",
     )
-    # TODO check signal_data.tx_hash that correct signal.provider was paid
     signal = ""
     trade_uuid = get_uuid()
-    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+    signal_data = IntQuerySchema(id=signal_id)
     try:
-        signal = query_one_filtered(Signal, id=signal_data.id)
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
+        if not placed_signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "Trade not found, Have you purchased this trade?",
+                        "status": False,
+                    }
+                ),
+                404,
+            )
+        signal = query_one_filtered(Signal, id=placed_signal.signal_id)
+
         if not signal:
             return (
                 jsonify(
@@ -277,9 +303,6 @@ def place_futures_trade(signal_id):
         futures_client.new_order(**stop_param)
         futures_client.new_order(**tp_param)
 
-        placed_signal = PlacedSignals(user_id, signal_data.id)
-        placed_signal.insert()
-
         return (
             jsonify(
                 {
@@ -326,17 +349,33 @@ def get_signal(signal_id):
     data = request.args.get("tx_hash", None)
 
     signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
+
     try:
         signal = query_one_filtered(Signal, id=signal_data.id)
-        placed_signal = PlacedSignals(user_id, signal_data.id)
-        placed_signal.insert()
-        # TODO check hash that correct signal.provider was paid use web3.py
+
+        if not signal:
+            raise UtilError("Resource Not found", 404, "This signal Id does not exist")
+
+        verify_compensation_details(
+            signal_data.tx_hash, signal.provider, user_id, signal_id
+        )
+        if not query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        ):
+            placed_signal = PlacedSignals(user_id, signal_data.id, signal_data.tx_hash)
+            placed_signal.insert()
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
             200,
         )
+    except UtilError as e:
+        return (
+            jsonify({"error": e.error, "message": e.message, "status": False}),
+            e.code,
+        )
     except Exception as e:
+        print(e)
         return (
             jsonify(
                 {
@@ -358,7 +397,9 @@ def rate_signal(signal_id):
     signal_data = IntQuerySchema(id=signal_id)
     rating = RatingSchema(rate=rating.get("rate"))
     try:
-        signal = query_one_filtered(PlacedSignals, signal_id=signal_data.id)
+        signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
 
         if not signal:
             return (
