@@ -1,6 +1,6 @@
 from MySignalsApp.models.base import BaseModel
 from MySignalsApp import db
-from datetime import datetime
+
 
 
 class PlacedSignals(BaseModel):
@@ -15,7 +15,7 @@ class PlacedSignals(BaseModel):
         self.signal_id = signal_id
 
     def __repr__(self):
-        return f"user_id({self.user_id}), signal({self.signal_id}), rating({self.rating}), date_placed {self.date_created})"
+        return f"id({self.id}), user_id({self.user_id}), signal({self.signal_id}), rating({self.rating}), date_placed {self.date_created})"
 
     def format(self):
         return {

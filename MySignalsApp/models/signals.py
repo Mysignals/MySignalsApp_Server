@@ -15,7 +15,7 @@ class Signal(BaseModel):
     is_spot = db.Column(db.Boolean(), nullable=False, default=True)
     status = db.Column(db.Boolean(), nullable=False, default=False)
     provider = db.Column(db.String(34), db.ForeignKey("users.id"), nullable=False)
-    rating = db.Relationship("PlacedSignals", backref="signal", lazy=True)
+    placed_signals = db.Relationship("PlacedSignals", backref="signal", lazy=True)
 
     def __init__(self, signal, status, provider, is_spot=True):
         self.signal = signal
@@ -24,7 +24,7 @@ class Signal(BaseModel):
         self.is_spot = is_spot
 
     def __repr__(self):
-        return f"signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.provider.user_name}))"
+        f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider}))"
 
     def format(self):
         return {
