@@ -22,6 +22,7 @@ from MySignalsApp.utils import (
 from binance.spot import Spot
 from MySignalsApp.errors.handlers import UtilError
 from MySignalsApp.web3_helpers import verify_compensation_details
+from MySignalsApp import db
 from time import sleep
 import os
 
@@ -114,27 +115,14 @@ def place_spot_trade(signal_id):
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
     try:
-        placed_signal = query_one_filtered(
-            PlacedSignals, signal_id=signal_data.id, user_id=user_id
-        )
-        if not placed_signal:
-            return (
-                jsonify(
-                    {
-                        "error": "Resource Not found",
-                        "message": "Trade not found, Have you purchased this trade?",
-                        "status": False,
-                    }
-                ),
-                404,
-            )
-        signal = query_one_filtered(Signal, id=placed_signal.signal_id)
+        signal=db.session.execute(db.select(Signal).join(PlacedSignals).filter(PlacedSignals.signal_id == signal_data.id, PlacedSignals.user_id==user_id)).scalar_one_or_none()
+        
         if not signal:
             return (
                 jsonify(
                     {
                         "error": "Resource Not found",
-                        "message": "The signal with the provided Id does not exist",
+                        "message": "Trade not found, Have you purchased this trade?",
                         "status": False,
                     }
                 ),
@@ -230,10 +218,9 @@ def place_futures_trade(signal_id):
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
     try:
-        placed_signal = query_one_filtered(
-            PlacedSignals, signal_id=signal_data.id, user_id=user_id
-        )
-        if not placed_signal:
+        signal=db.session.execute(db.select(Signal).join(PlacedSignals).filter(PlacedSignals.signal_id == signal_data.id, PlacedSignals.user_id==user_id)).scalar_one_or_none()
+        
+        if not signal:
             return (
                 jsonify(
                     {
@@ -244,19 +231,8 @@ def place_futures_trade(signal_id):
                 ),
                 404,
             )
-        signal = query_one_filtered(Signal, id=placed_signal.signal_id)
 
-        if not signal:
-            return (
-                jsonify(
-                    {
-                        "error": "Resource Not found",
-                        "message": "The signal with the provided Id does not exist",
-                        "status": False,
-                    }
-                ),
-                404,
-            )
+
         if signal.is_spot:
             return (
                 jsonify(
@@ -357,13 +333,14 @@ def get_signal(signal_id):
             raise UtilError("Resource Not found", 404, "This signal Id does not exist")
 
         verify_compensation_details(
-            signal_data.tx_hash, signal.provider, user_id, signal_id
+            signal_data.tx_hash, signal.user.wallet, user_id, signal_id
         )
         if not query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
         ):
             placed_signal = PlacedSignals(user_id, signal_data.id, signal_data.tx_hash)
             placed_signal.insert()
+
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
