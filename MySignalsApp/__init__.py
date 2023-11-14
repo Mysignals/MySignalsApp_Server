@@ -10,6 +10,8 @@ from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from flask_cors import CORS
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 
 
@@ -30,6 +32,13 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour", "3 per second"],
     storage_uri=os.environ.get("REDIS"),
 )
+
+handler = RotatingFileHandler("app.log", maxBytes=10000, backupCount=1)
+formatter = logging.Formatter(
+    "[%(asctime)s] %(levelname)s in %(module)s: %(message)s [Path: %(url)s | Method: %(method)s | IP: %(ip)s]"
+)
+handler.setFormatter(formatter)
+handler.setLevel(logging.ERROR)
 
 
 def create_app(config_class=App_Config):
@@ -76,7 +85,10 @@ def create_app(config_class=App_Config):
     limiter.init_app(app)
     limiter.limit("25/second", override_defaults=True)(admin.index_view.blueprint)
 
+    app.logger.addHandler(handler)
+
     # with app.app_context():
     #     db.create_all()
 
     return app
+
