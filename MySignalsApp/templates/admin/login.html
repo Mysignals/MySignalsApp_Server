@@ -3,15 +3,28 @@
 {% block body %}
 {{super()}}
 
-<div style="display: flex; flex-direction: column; text-align: center; justify-content: center;">
-    <form action="/admin/login" method="post" >
-        <label for="email">Email: </label>
-        <input type="email" name="email" id="email" placeholder="admin@mail.com">
-
-        <label for="password">password: </label>
-        <input type="password" name="password" id="password">
-
-        <button type="submit">login</button>
+<div style="display: flex; flex-direction: row; text-align: center; justify-content: center;">
+    <form action="/admin/login" method="post"  >
+        {{ form.csrf_token }}
+        <div style="display: flex; flex-direction:row">
+        <div style="padding:5px; display:block;">
+            {{ form.email.label }}:
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <span class="error" style="display: block; color: tomato; font-size: smaller;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div style="padding:5px; display:block;">
+            {{ form.password.label }}:
+            {{ form.password }}
+            {% for error in form.password.errors %}
+                <span class="error" style="display: block; color: tomato; font-size: smaller;">{{ error }}</span>
+            {% endfor %}
+        </div>
+    </div>
+        <div style="margin: 10px;">
+            {{ form.submit }}
+        </div>
     </form>
 </div>
 {% endblock body %}

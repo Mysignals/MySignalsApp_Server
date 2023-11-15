@@ -2,8 +2,11 @@ from flask_admin import BaseView, expose
 from MySignalsApp import db, admin, bcrypt
 from MySignalsApp.models.base import BaseModel
 from flask_admin.contrib.sqla import ModelView
-from MySignalsApp.utils import query_one_filtered
+from wtforms import EmailField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email
 from flask import session, request, redirect, flash
+from MySignalsApp.utils import query_one_filtered
+from flask_wtf import FlaskForm
 import enum
 
 
@@ -71,26 +74,37 @@ class User(BaseModel):
         }
 
 
+class AdminForm(FlaskForm):
+    email = EmailField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Login")
+
+
 class AdminLoginView(BaseView):
-    @expose("/")
-    def admin_login(self):
-        return self.render("admin/login.html")
-
-    @expose("/", methods=["POST"])
+    @expose("/", methods=["GET", "POST"])
     def admin_form_login(self):
-        form_data = request.form
-        email = form_data.get("email")
-        password = form_data.get("password")
-        if not email or not password:
-            flash("One or more missing fields")
-            return self.render("admin/login.html", category="error"), 400
-        user = query_one_filtered(User, email=email)
-        if not user or not bcrypt.check_password_hash(user.password, password):
-            flash("Incorrect email or password", category="error")
-            return self.render("admin/login.html"), 401
+        form = AdminForm()
 
-        session["user"] = {"id": user.id, "permission": user.roles.value}
-        return redirect("/admin", 302)
+        if form.validate_on_submit():
+            email, password = form.email.data, form.password.data
+            if not email or not password:
+                flash("One or more missing fields")
+                return self.render("admin/login.html", category="error"), 400
+            user = query_one_filtered(User, email=email)
+            if not user or not bcrypt.check_password_hash(user.password, password):
+                flash("Incorrect email or password", category="error")
+                return self.render("admin/login.html"), 401
+
+            session["user"] = {"id": user.id, "permission": user.roles.value}
+            return redirect("/admin", 302)
+        return self.render("admin/login.html", form=form)
+
+
+class AdminLogoutView(BaseView):
+    @expose("/")
+    def logout_admin(self):
+        session.pop("user", None)
+        return redirect("/admin/login", 302)
 
 
 class UserModelView(ModelView):
@@ -134,3 +148,4 @@ class UserModelView(ModelView):
 
 admin.add_view(UserModelView(User, db.session))
 admin.add_view(AdminLoginView(endpoint="login", name="login"))
+admin.add_view(AdminLogoutView(endpoint="logout", name="logout"))

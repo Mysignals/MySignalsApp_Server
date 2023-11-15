@@ -91,4 +91,3 @@ def create_app(config_class=App_Config):
     #     db.create_all()
 
     return app
-

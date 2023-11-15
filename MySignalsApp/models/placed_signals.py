@@ -2,7 +2,6 @@ from MySignalsApp.models.base import BaseModel
 from MySignalsApp import db
 
 
-
 class PlacedSignals(BaseModel):
     __tablename__ = "placedsignals"
     id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
