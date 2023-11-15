@@ -33,7 +33,7 @@ limiter = Limiter(
     storage_uri=os.environ.get("REDIS"),
 )
 
-handler = RotatingFileHandler("app.log", maxBytes=10000, backupCount=1)
+handler = RotatingFileHandler("logs/app.log", maxBytes=100000, backupCount=1)
 formatter = logging.Formatter(
     "[%(asctime)s] %(levelname)s in %(module)s: %(message)s [Path: %(url)s | Method: %(method)s | IP: %(ip)s]"
 )
