@@ -24,7 +24,7 @@ class Signal(BaseModel):
         self.is_spot = is_spot
 
     def __repr__(self):
-        f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider}))"
+        return f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider}))"
 
     def format(self):
         return {
