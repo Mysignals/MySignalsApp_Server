@@ -1,8 +1,8 @@
-from flask import jsonify, request, Blueprint, session, render_template
+from flask import jsonify, request, Blueprint, session, render_template, current_app
 from cryptography.fernet import Fernet
 from MySignalsApp.models.users import User
 from pydantic import ValidationError
-from MySignalsApp import bcrypt, limiter
+from MySignalsApp import bcrypt
 from MySignalsApp.schemas import (
     RegisterSchema,
     StringUUIDQuerySchema,
@@ -79,6 +79,7 @@ def register_user():
             400,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -107,6 +108,7 @@ def activate_user(token):
             )
 
         except Exception as e:
+            current_app.log_exception(exc_info=e)
             return (
                 jsonify(
                     {
@@ -176,6 +178,7 @@ def login_user():
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -217,6 +220,7 @@ def reset_request():
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -252,6 +256,7 @@ def reset_password(token):
             400,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -302,6 +307,7 @@ def see_sess():
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -359,6 +365,7 @@ def update_keys():
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

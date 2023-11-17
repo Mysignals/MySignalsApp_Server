@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from MySignalsApp.schemas import ValidEmailSchema, PageQuerySchema
 from MySignalsApp.models.users import User, Roles
 from MySignalsApp.utils import (
@@ -8,7 +8,6 @@ from MySignalsApp.utils import (
     has_permission,
     is_active,
 )
-from MySignalsApp import limiter
 
 registrar = Blueprint("registrar", __name__, url_prefix="/registrar")
 
@@ -64,6 +63,7 @@ def add_provider():
             {"message": "success", "provider": provider_email.email, "status": True}
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -127,6 +127,7 @@ def add_registrar():
             {"message": "success", "registrar": registrar_email.email, "status": True}
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -190,6 +191,7 @@ def drop_role():
             {"message": "success", "registrar": user_email.email, "status": True}
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -231,6 +233,7 @@ def get_providers():
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -272,6 +275,7 @@ def get_registrars():
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -313,6 +317,7 @@ def get_users():
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -354,6 +359,7 @@ def get_all_users():
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

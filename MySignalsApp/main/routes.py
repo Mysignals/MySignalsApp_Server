@@ -2,7 +2,7 @@ from MySignalsApp.models.users import User
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
-from flask import jsonify, Blueprint, request, session
+from flask import jsonify, Blueprint, request, session, current_app
 from MySignalsApp.schemas import (
     ValidTxSchema,
     PageQuerySchema,
@@ -20,7 +20,6 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
-from MySignalsApp import limiter
 from time import sleep
 import os
 
@@ -37,13 +36,12 @@ def get_active_signals():
     page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         signals = query_paginate_filtered(Signal, page.page, status=True)
-        filtered_signals = []
         if not signals.items:
             return (
                 jsonify(
                     {
                         "message": "Success",
-                        "signals": filtered_signals,
+                        "signals": [],
                         "pages": signals.pages,
                         "total": signals.total,
                         "status": True,
@@ -52,21 +50,21 @@ def get_active_signals():
                 200,
             )
 
-        for signal in signals:
-            filtered_signals.append(
-                {
-                    "id": signal.id,
-                    "signal": {
-                        "symbol": signal.signal.get("symbol"),
-                        "side": signal.signal.get("side"),
-                    },
-                    "is_spot": signal.is_spot,
-                    "provider": signal.user.user_name,
-                    "provider_wallet": signal.user.wallet,
-                    "provider_rating": calculate_rating(signal.user.id),
-                    "date_created": signal.date_created,
-                }
-            )
+        filtered_signals = [
+            {
+                "id": signal.id,
+                "signal": {
+                    "symbol": signal.signal.get("symbol"),
+                    "side": signal.signal.get("side"),
+                },
+                "is_spot": signal.is_spot,
+                "provider": signal.user.user_name,
+                "provider_wallet": signal.user.wallet,
+                "provider_rating": calculate_rating(signal.user.id),
+                "date_created": signal.date_created,
+            }
+            for signal in signals
+        ]
 
         return (
             jsonify(
@@ -81,7 +79,7 @@ def get_active_signals():
             200,
         )
     except Exception as e:
-        print(e)
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -179,7 +177,6 @@ def place_spot_trade(signal_id):
     except ClientError as e:
         if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
             spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
-        print(e)
         return (
             jsonify(
                 {"error": e.error_code, "message": e.error_message, "status": False}
@@ -187,6 +184,7 @@ def place_spot_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -307,6 +305,7 @@ def place_futures_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -337,6 +336,7 @@ def get_signal(signal_id):
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -380,6 +380,7 @@ def rate_signal(signal_id):
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

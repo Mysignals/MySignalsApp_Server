@@ -34,9 +34,7 @@ limiter = Limiter(
 )
 
 handler = RotatingFileHandler("logs/app.log", maxBytes=100000, backupCount=1)
-formatter = logging.Formatter(
-    "[%(asctime)s] %(levelname)s in %(module)s: %(message)s [Path: %(url)s | Method: %(method)s | IP: %(ip)s]"
-)
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s : %(message)s ")
 handler.setFormatter(formatter)
 handler.setLevel(logging.ERROR)
 
