@@ -17,6 +17,7 @@ from MySignalsApp.utils import (
     has_permission,
     query_one_filtered,
     calculate_rating,
+    has_api_keys,
     is_active,
 )
 from binance.spot import Spot
@@ -98,6 +99,8 @@ def place_spot_trade(signal_id):
     user = is_active(User, user_id)
 
     tx_hash = (request.get_json()).get("tx_hash")
+
+    has_api_keys(user)
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
@@ -203,6 +206,8 @@ def place_futures_trade(signal_id):
     user = is_active(User, user_id)
     #  TODO uncomment when hash check is implemented
     tx_hash = (request.get_json()).get("tx_hash")
+
+    has_api_keys(user)
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")

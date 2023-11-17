@@ -4,7 +4,7 @@ from MySignalsApp.models.base import BaseModel
 from flask_admin.contrib.sqla import ModelView
 from wtforms import EmailField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email
-from flask import session, request, redirect, flash
+from flask import session, redirect, flash
 from MySignalsApp.utils import query_one_filtered
 from flask_wtf import FlaskForm
 import enum
@@ -26,8 +26,8 @@ class User(BaseModel):
     user_name = db.Column(db.String(345), unique=True, nullable=False, index=True)
     email = db.Column(db.String(345), unique=True, nullable=False, index=True)
     password = db.Column(db.String(64), nullable=False)
-    api_key = db.Column(db.String(), nullable=False)
-    api_secret = db.Column(db.String(), nullable=False)
+    api_key = db.Column(db.String(), nullable=True)
+    api_secret = db.Column(db.String(), nullable=True)
     wallet = db.Column(db.String(43), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
@@ -42,8 +42,6 @@ class User(BaseModel):
         user_name,
         email,
         password,
-        api_key,
-        api_secret,
         roles=Roles.USER,
         wallet="",
     ):
@@ -51,8 +49,6 @@ class User(BaseModel):
         self.email = email
         self.password = password
         self.roles = roles
-        self.api_key = api_key
-        self.api_secret = api_secret
         self.wallet = wallet
 
     def __repr__(self):

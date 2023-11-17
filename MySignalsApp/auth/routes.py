@@ -50,8 +50,6 @@ def register_user():
             user_name=data.user_name,
             email=data.email,
             password=bcrypt.generate_password_hash(data.password).decode("utf-8"),
-            api_key=kryptr.encrypt(data.api_key.encode("utf-8")).decode("utf-8"),
-            api_secret=kryptr.encrypt(data.api_secret.encode("utf-8")).decode("utf-8"),
         )
         user.insert()
         send_email(user, "auth.activate_user")
@@ -155,8 +153,12 @@ def login_user():
                 jsonify(
                     {
                         "message": "Success",
+                        "id": user.id,
                         "user_name": user.user_name,
                         "is_active": user.is_active,
+                        "has_api_keys": True
+                        if user.api_key and user.api_secret
+                        else False,
                         "permission": user.roles.value,
                         "status": True,
                     },
@@ -168,8 +170,10 @@ def login_user():
             jsonify(
                 {
                     "message": "Success",
+                    "id": user.id,
                     "user_name": user.user_name,
                     "is_active": user.is_active,
+                    "has_api_keys": True if user.api_key and user.api_secret else False,
                     "permission": user.roles.value,
                     "status": True,
                 },
@@ -300,8 +304,10 @@ def see_sess():
                 "message": "Success",
                 "email": user.email,
                 "user_name": user.user_name,
+                "id": user.id,
                 "is_active": user.is_active,
                 "roles": user.roles.value,
+                "has_api_keys": True if user.api_key and user.api_secret else False,
                 "created_on": user.date_created,
                 "status": True,
             }
@@ -360,6 +366,7 @@ def update_keys():
                 "message": "success",
                 "user_name": user.user_name,
                 "is_active": user.is_active,
+                "has_api_keys": True if user.api_key and user.api_secret else False,
                 "status": True,
             }
         )
