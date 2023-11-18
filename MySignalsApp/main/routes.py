@@ -40,35 +40,26 @@ def get_active_signals():
     page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         signals = query_paginate_filtered(Signal, page.page, status=True)
-        if not signals.items:
-            return (
-                jsonify(
-                    {
-                        "message": "Success",
-                        "signals": [],
-                        "pages": signals.pages,
-                        "total": signals.total,
-                        "status": True,
-                    }
-                ),
-                200,
-            )
 
-        filtered_signals = [
-            {
-                "id": signal.id,
-                "signal": {
-                    "symbol": signal.signal.get("symbol"),
-                    "side": signal.signal.get("side"),
-                },
-                "is_spot": signal.is_spot,
-                "provider": signal.user.user_name,
-                "provider_wallet": signal.user.wallet,
-                "provider_rating": calculate_rating(signal.user.id),
-                "date_created": signal.date_created,
-            }
-            for signal in signals
-        ]
+        filtered_signals = (
+            [
+                {
+                    "id": signal.id,
+                    "signal": {
+                        "symbol": signal.signal.get("symbol"),
+                        "side": signal.signal.get("side"),
+                    },
+                    "is_spot": signal.is_spot,
+                    "provider": signal.user.user_name,
+                    "provider_wallet": signal.user.wallet,
+                    "provider_rating": calculate_rating(signal.user.id),
+                    "date_created": signal.date_created,
+                }
+                for signal in signals
+            ]
+            if signals.items
+            else []
+        )
 
         return (
             jsonify(

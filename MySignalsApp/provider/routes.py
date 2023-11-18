@@ -67,12 +67,16 @@ def get_spot_pairs():
         spot_client = Spot()
 
         usdt_symbols = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
-        pairs = []
+
         if not usdt_symbols:
             return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
-        for symbol in usdt_symbols:
-            if symbol["symbol"][-4:] == "USDT":
-                pairs.append(symbol["symbol"])
+
+        pairs = [
+            symbol["symbol"]
+            for symbol in usdt_symbols
+            if symbol["symbol"][-4:] == "USDT"
+        ]
+
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:
         return (
@@ -99,15 +103,14 @@ def get_futures_pairs():
     try:
         futures_client = UMFutures(base_url="https://testnet.binancefuture.com")
         usdt_symbols = futures_client.exchange_info()["symbols"]
-        pairs = []
         if not usdt_symbols:
             return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
-        for symbol in usdt_symbols:
-            if (
-                symbol["symbol"][-4:] == "USDT"
-                and symbol["contractType"] == "PERPETUAL"
-            ):
-                pairs.append(symbol["symbol"])
+
+        pairs = [
+            symbol["symbol"]
+            for symbol in usdt_symbols
+            if symbol["symbol"][-4:] == "USDT" and symbol["contractType"] == "PERPETUAL"
+        ]
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:
         return (
