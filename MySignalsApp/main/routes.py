@@ -2,7 +2,7 @@ from MySignalsApp.models.users import User
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
-from flask import jsonify, Blueprint, request, session
+from flask import jsonify, Blueprint, request, session, current_app
 from MySignalsApp.schemas import (
     ValidTxSchema,
     PageQuerySchema,
@@ -17,6 +17,7 @@ from MySignalsApp.utils import (
     has_permission,
     query_one_filtered,
     calculate_rating,
+    has_api_keys,
     is_active,
 )
 from binance.spot import Spot
@@ -39,13 +40,12 @@ def get_active_signals():
     page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         signals = query_paginate_filtered(Signal, page.page, status=True)
-        filtered_signals = []
         if not signals.items:
             return (
                 jsonify(
                     {
                         "message": "Success",
-                        "signals": filtered_signals,
+                        "signals": [],
                         "pages": signals.pages,
                         "total": signals.total,
                         "status": True,
@@ -54,21 +54,21 @@ def get_active_signals():
                 200,
             )
 
-        for signal in signals:
-            filtered_signals.append(
-                {
-                    "id": signal.id,
-                    "signal": {
-                        "symbol": signal.signal.get("symbol"),
-                        "side": signal.signal.get("side"),
-                    },
-                    "is_spot": signal.is_spot,
-                    "provider": signal.user.user_name,
-                    "provider_wallet": signal.user.wallet,
-                    "provider_rating": calculate_rating(signal.user.id),
-                    "date_created": signal.date_created,
-                }
-            )
+        filtered_signals = [
+            {
+                "id": signal.id,
+                "signal": {
+                    "symbol": signal.signal.get("symbol"),
+                    "side": signal.signal.get("side"),
+                },
+                "is_spot": signal.is_spot,
+                "provider": signal.user.user_name,
+                "provider_wallet": signal.user.wallet,
+                "provider_rating": calculate_rating(signal.user.id),
+                "date_created": signal.date_created,
+            }
+            for signal in signals
+        ]
 
         return (
             jsonify(
@@ -83,7 +83,7 @@ def get_active_signals():
             200,
         )
     except Exception as e:
-        print(e)
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -103,6 +103,8 @@ def place_spot_trade(signal_id):
 
     tx_hash = (request.get_json()).get("tx_hash")
 
+    has_api_keys(user)
+
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
@@ -115,8 +117,15 @@ def place_spot_trade(signal_id):
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
     try:
-        signal=db.session.execute(db.select(Signal).join(PlacedSignals).filter(PlacedSignals.signal_id == signal_data.id, PlacedSignals.user_id==user_id)).scalar_one_or_none()
-        
+        signal = db.session.execute(
+            db.select(Signal)
+            .join(PlacedSignals)
+            .filter(
+                PlacedSignals.signal_id == signal_data.id,
+                PlacedSignals.user_id == user_id,
+            )
+        ).scalar_one_or_none()
+
         if not signal:
             return (
                 jsonify(
@@ -181,7 +190,6 @@ def place_spot_trade(signal_id):
     except ClientError as e:
         if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
             spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
-        print(e)
         return (
             jsonify(
                 {"error": e.error_code, "message": e.error_message, "status": False}
@@ -189,6 +197,7 @@ def place_spot_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -205,6 +214,10 @@ def place_spot_trade(signal_id):
 def place_futures_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
+    #  TODO uncomment when hash check is implemented
+    tx_hash = (request.get_json()).get("tx_hash")
+
+    has_api_keys(user)
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
@@ -218,8 +231,15 @@ def place_futures_trade(signal_id):
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
     try:
-        signal=db.session.execute(db.select(Signal).join(PlacedSignals).filter(PlacedSignals.signal_id == signal_data.id, PlacedSignals.user_id==user_id)).scalar_one_or_none()
-        
+        signal = db.session.execute(
+            db.select(Signal)
+            .join(PlacedSignals)
+            .filter(
+                PlacedSignals.signal_id == signal_data.id,
+                PlacedSignals.user_id == user_id,
+            )
+        ).scalar_one_or_none()
+
         if not signal:
             return (
                 jsonify(
@@ -231,7 +251,6 @@ def place_futures_trade(signal_id):
                 ),
                 404,
             )
-
 
         if signal.is_spot:
             return (
@@ -306,6 +325,7 @@ def place_futures_trade(signal_id):
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -341,7 +361,6 @@ def get_signal(signal_id):
             placed_signal = PlacedSignals(user_id, signal_data.id, signal_data.tx_hash)
             placed_signal.insert()
 
-
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
             200,
@@ -352,7 +371,7 @@ def get_signal(signal_id):
             e.code,
         )
     except Exception as e:
-        print(e)
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -398,6 +417,7 @@ def rate_signal(signal_id):
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

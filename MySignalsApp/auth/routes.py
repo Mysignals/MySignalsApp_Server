@@ -1,8 +1,8 @@
-from flask import jsonify, request, Blueprint, session, render_template
+from flask import jsonify, request, Blueprint, session, render_template, current_app
 from cryptography.fernet import Fernet
 from MySignalsApp.models.users import User
 from pydantic import ValidationError
-from MySignalsApp import bcrypt, limiter
+from MySignalsApp import bcrypt
 from MySignalsApp.schemas import (
     RegisterSchema,
     StringUUIDQuerySchema,
@@ -50,8 +50,6 @@ def register_user():
             user_name=data.user_name,
             email=data.email,
             password=bcrypt.generate_password_hash(data.password).decode("utf-8"),
-            api_key=kryptr.encrypt(data.api_key.encode("utf-8")).decode("utf-8"),
-            api_secret=kryptr.encrypt(data.api_secret.encode("utf-8")).decode("utf-8"),
         )
         user.insert()
         send_email(user, "auth.activate_user")
@@ -79,6 +77,7 @@ def register_user():
             400,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -101,12 +100,15 @@ def activate_user(token):
             user.update()
             return (
                 render_template(
-                    "activated.html", username=user.user_name, frontend=os.environ.get("FRONTEND_URL","127.0.0.1")
+                    "activated.html",
+                    username=user.user_name,
+                    frontend=os.environ.get("FRONTEND_URL", "127.0.0.1"),
                 ),
                 200,
             )
 
         except Exception as e:
+            current_app.log_exception(exc_info=e)
             return (
                 jsonify(
                     {
@@ -122,7 +124,7 @@ def activate_user(token):
         render_template(
             "activate_error.html",
             message="Token is not valid or has already been used",
-            frontend=os.environ.get("FRONTEND_URL","127.0.0.1")
+            frontend=os.environ.get("FRONTEND_URL", "127.0.0.1"),
         ),
         403,
     )
@@ -153,8 +155,12 @@ def login_user():
                 jsonify(
                     {
                         "message": "Success",
+                        "id": user.id,
                         "user_name": user.user_name,
                         "is_active": user.is_active,
+                        "has_api_keys": True
+                        if user.api_key and user.api_secret
+                        else False,
                         "permission": user.roles.value,
                         "status": True,
                     },
@@ -166,8 +172,10 @@ def login_user():
             jsonify(
                 {
                     "message": "Success",
+                    "id": user.id,
                     "user_name": user.user_name,
                     "is_active": user.is_active,
+                    "has_api_keys": True if user.api_key and user.api_secret else False,
                     "permission": user.roles.value,
                     "status": True,
                 },
@@ -176,6 +184,7 @@ def login_user():
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -217,6 +226,7 @@ def reset_request():
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -252,6 +262,7 @@ def reset_password(token):
             400,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -295,13 +306,16 @@ def see_sess():
                 "message": "Success",
                 "email": user.email,
                 "user_name": user.user_name,
+                "id": user.id,
                 "is_active": user.is_active,
                 "roles": user.roles.value,
+                "has_api_keys": True if user.api_key and user.api_secret else False,
                 "created_on": user.date_created,
                 "status": True,
             }
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -354,11 +368,13 @@ def update_keys():
                 "message": "success",
                 "user_name": user.user_name,
                 "is_active": user.is_active,
+                "has_api_keys": True if user.api_key and user.api_secret else False,
                 "status": True,
             }
         )
 
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

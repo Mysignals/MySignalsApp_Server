@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app
 from pydantic import ValidationError
 from web3.exceptions import TransactionNotFound
 from MySignalsApp import db
@@ -90,6 +90,7 @@ def cant_process(error):
 
 @error.app_errorhandler(500)
 def server_error(error):
+    current_app.log_exception(exc_info=error)
     return (
         jsonify(
             {"error": error.name, "message": "Its not you its us", "status": False}

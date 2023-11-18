@@ -144,6 +144,8 @@ There are three roles available, role will be provided at login and `base_uri/au
 ```json
  {
     "message": "Success",
+    "id":"user id",
+    "has_api_keys": true,
     "user_name": "user_name",
     "is_active": true,//boolean- if account is active or not
     "permission": "User",//string 'User' or array of permissions
@@ -206,6 +208,8 @@ Returns:
 ```json
 {
     "message": "Success",
+    "id":"user id",
+    "has_api_keys": false,
     "email": "email",
     "user_name": "user_name",
     "is_active": false,
@@ -229,6 +233,8 @@ Returns: Json object
 ```json
 {
     "message": "success",
+    "id":"user id",
+    "has_api_keys": true,
     "user_name": "user_name",
     "is_active": true,
 }

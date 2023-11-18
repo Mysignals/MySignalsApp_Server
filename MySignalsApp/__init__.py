@@ -12,6 +12,8 @@ from flask_mail import Mail
 from flask_cors import CORS
 from dotenv import load_dotenv
 import json
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 
 load_dotenv(".env")
@@ -33,6 +35,11 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour", "3 per second"],
     storage_uri=os.environ.get("REDIS"),
 )
+
+handler = RotatingFileHandler("logs/app.log", maxBytes=100000, backupCount=1)
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s : %(message)s ")
+handler.setFormatter(formatter)
+handler.setLevel(logging.ERROR)
 
 
 def create_app(config_class=App_Config):
@@ -78,6 +85,8 @@ def create_app(config_class=App_Config):
     # Initialize rate limiter
     limiter.init_app(app)
     limiter.limit("25/second", override_defaults=True)(admin.index_view.blueprint)
+
+    app.logger.addHandler(handler)
 
     # with app.app_context():
     #     db.create_all()

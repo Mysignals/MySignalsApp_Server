@@ -5,12 +5,12 @@ from MySignalsApp.schemas import (
     IntQuerySchema,
     PageQuerySchema,
 )
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, current_app
 from MySignalsApp.models.users import User
 from MySignalsApp.models.signals import Signal
 from binance.um_futures import UMFutures
 from binance.error import ClientError
-from MySignalsApp import cache, limiter
+from MySignalsApp import cache
 from MySignalsApp.utils import (
     query_paginate_filtered,
     has_permission,
@@ -45,6 +45,7 @@ def get_signals():
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -81,6 +82,7 @@ def get_spot_pairs():
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {"error": e.error_code, "message": e.error_message, "status": False}
@@ -115,6 +117,7 @@ def get_futures_pairs():
             e.status_code,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -140,6 +143,7 @@ def change_wallet():
 
         return jsonify({"message": "Wallet changed", "status": True}), 200
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -200,6 +204,7 @@ def new_spot_trade():
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -247,6 +252,7 @@ def new_futures_trade():
             200,
         )
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -293,6 +299,7 @@ def delete_trade(signal_id):
         signal.delete()
         return jsonify({"message": "success", "signal_id": signal.id, "status": True})
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {
@@ -339,6 +346,7 @@ def deactivate_trade(signal_id):
         signal.update()
         return jsonify({"message": "success", "signal_id": signal.id, "status": True})
     except Exception as e:
+        current_app.log_exception(exc_info=e)
         return (
             jsonify(
                 {

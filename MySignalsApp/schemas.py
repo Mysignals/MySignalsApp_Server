@@ -10,8 +10,6 @@ class RegisterSchema(BaseModel):
     )
     password: constr(max_length=64, min_length=8)
     confirm_password: constr(max_length=64, min_length=8)
-    api_key: constr(max_length=100)
-    api_secret: constr(max_length=100)
 
     @validator("email")
     def valid_email_length(cls, v):
