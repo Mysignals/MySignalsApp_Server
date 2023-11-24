@@ -20,8 +20,7 @@ class BaseModel(db.Model):
         primary_key=True,
         unique=True,
         nullable=False,
-        default=get_uuid,
-        index=True,
+        default=get_uuid
     )
 
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
