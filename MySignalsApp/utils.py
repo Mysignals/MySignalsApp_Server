@@ -55,7 +55,7 @@ def get_reset_token(user, expires=datetime.utcnow() + timedelta(hours=1)):
 
 def verify_reset_token(user_table, token):
     try:
-        token_data = query_one_filtered(UserTokens, token=str(token))
+        token_data = query_one_filtered(UserTokens, token=token)
         if not token_data:
             return None
 
