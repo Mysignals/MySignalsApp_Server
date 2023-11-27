@@ -140,6 +140,8 @@ def calculate_rating(provider_id):
         .all()
     )
     rating_total = 0
+    if not ratings:
+        return 0
     for rating in ratings:
         rating_total += rating
     return round(rating_total / (len(ratings) if ratings else 1), 2)

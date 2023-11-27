@@ -16,6 +16,7 @@ from MySignalsApp.utils import (
     has_permission,
     query_one_filtered,
     is_active,
+    calculate_rating,
 )
 from binance.spot import Spot
 
@@ -39,6 +40,7 @@ def get_signals():
                     else [],
                     "total": signals.total,
                     "pages": signals.pages,
+                    "provider_rating": calculate_rating(user_id),
                     "status": True,
                 }
             ),

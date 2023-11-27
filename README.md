@@ -254,6 +254,7 @@ Returns: Json object
 ```json
 {
     "message": "Success",
+    "provider_rating": 0.0,
     "signals": [
         {
             "id": 1,
@@ -613,6 +614,60 @@ Returns:JSON object
   ],
   "total": 40,
   "pages": 3,
+}
+```
+
+---
+<br>
+
+  `GET '/mytrades'` or `GET '/mytrades?page=${page}'`
+- get all previously purchased trades of logged in user,paginated
+- Request Arguements: `page`- integer page number, page defaults to `1` if not given
+- Returns:JSON object
+```json
+{
+  "message": "success",
+  "pages": 1,
+  "total": 2 ,
+  "mytrades": [
+    {
+      "date_created": "Mon, 27 Nov 2023 00:10:22 GMT",
+      "id": 2,
+      "is_spot": true,
+      "provider": "bingoprovider",
+      "signal": {
+        "price": 336.0,
+        "quantity": 0.5,
+        "side": "SELL",
+        "stops": {
+          "sl": 340.0,
+          "tp": 325.0
+        },
+        "symbol": "LTCUSDT"
+      },
+      "status": true,
+      "user_rating": 0 // signal rating given by this logged in user
+    },
+    {
+      "date_created": "Mon, 27 Nov 2023 00:10:07 GMT",
+      "id": 1,
+      "is_spot": true,
+      "provider": "bingoprovider",
+      "signal": {
+        "price": 336.0,
+        "quantity": 0.5,
+        "side": "SELL",
+        "stops": {
+          "sl": 340.0,
+          "tp": 325.0
+        },
+        "symbol": "BNBUSDT"
+      },
+      "status": true,
+      "user_rating": 0  // signal rating given by this logged in user
+    }
+  ],
+  "status": true
 }
 ```
 ---

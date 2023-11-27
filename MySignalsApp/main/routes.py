@@ -49,7 +49,7 @@ def get_active_signals():
                     "is_spot": signal.is_spot,
                     "provider": signal.user.user_name,
                     "provider_wallet": signal.user.wallet,
-                    "provider_rating": calculate_rating(signal.user.id),
+                    "provider_rating": calculate_rating(signal.provider),
                     "date_created": signal.date_created,
                 }
                 for signal in signals
@@ -387,3 +387,37 @@ def rate_signal(signal_id):
             ),
             500,
         )
+
+
+@main.route("/mytrades")
+def get_user_placed_signals():
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+    page = PageQuerySchema(page=request.args.get("page", 1))
+
+    placed_signals = query_paginate_filtered(PlacedSignals, page.page, user_id=user_id)
+
+    signal_data = (
+        [
+            {
+                **data.signal.format(),
+                "provider": data.signal.user.user_name,
+                "user_rating": data.rating,
+            }
+            for data in placed_signals
+        ]
+        if placed_signals
+        else []
+    )
+    return (
+        jsonify(
+            {
+                "message": "success",
+                "mytrades": signal_data,
+                "status": True,
+                "total": placed_signals.total,
+                "pages": placed_signals.pages,
+            }
+        ),
+        200,
+    )
