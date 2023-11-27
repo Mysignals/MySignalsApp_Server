@@ -55,7 +55,7 @@ def get_reset_token(user, expires=datetime.utcnow() + timedelta(hours=1)):
 
 def verify_reset_token(user_table, token):
     try:
-        token_data = query_one_filtered(UserTokens, token=str(token))
+        token_data = query_one_filtered(UserTokens, token=token)
         if not token_data:
             return None
 
@@ -140,6 +140,8 @@ def calculate_rating(provider_id):
         .all()
     )
     rating_total = 0
+    if not ratings:
+        return 0
     for rating in ratings:
         rating_total += rating
     return round(rating_total / (len(ratings) if ratings else 1), 2)

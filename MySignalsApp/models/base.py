@@ -16,12 +16,7 @@ class BaseModel(db.Model):
 
     # Define a primary key column with a default value of a generated UUID
     id = db.Column(
-        db.String(40),
-        primary_key=True,
-        unique=True,
-        nullable=False,
-        default=get_uuid,
-        index=True,
+        db.String(40), primary_key=True, unique=True, nullable=False, default=get_uuid
     )
 
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

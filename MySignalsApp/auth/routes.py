@@ -94,40 +94,39 @@ def register_user():
 def activate_user(token):
     token = StringUUIDQuerySchema(token=token)
     user = verify_reset_token(User, token.token)
-    if user:
-        user.is_active = True
-        try:
-            user.update()
-            return (
-                render_template(
-                    "activated.html",
-                    username=user.user_name,
-                    frontend=os.environ.get("FRONTEND_URL", "127.0.0.1"),
-                ),
-                200,
-            )
+    if not user:
+        return (
+            render_template(
+                "activate_error.html",
+                message="Token is not valid or has already been used",
+                frontend=os.environ.get("FRONTEND", "/"),
+            ),
+            403,
+        )
+    user.is_active = True
+    try:
+        user.update()
+        return (
+            render_template(
+                "activated.html",
+                username=user.user_name,
+                frontend=os.environ.get("FRONTEND", "/"),
+            ),
+            200,
+        )
 
-        except Exception as e:
-            current_app.log_exception(exc_info=e)
-            return (
-                jsonify(
-                    {
-                        "error": "Internal server error",
-                        "message": "User not activated, It's not you it's us",
-                        "status": False,
-                    }
-                ),
-                500,
-            )
-
-    return (
-        render_template(
-            "activate_error.html",
-            message="Token is not valid or has already been used",
-            frontend=os.environ.get("FRONTEND_URL", "127.0.0.1"),
-        ),
-        403,
-    )
+    except Exception as e:
+        current_app.log_exception(exc_info=e)
+        return (
+            jsonify(
+                {
+                    "error": "Internal server error",
+                    "message": "User not activated, It's not you it's us",
+                    "status": False,
+                }
+            ),
+            500,
+        )
 
 
 @auth.route("/login", methods=["POST"])
