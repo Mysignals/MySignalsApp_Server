@@ -9,6 +9,8 @@ class PlacedSignals(BaseModel):
     signal_id = db.Column(db.Integer(), db.ForeignKey("signals.id"), nullable=False)
     rating = db.Column(db.Integer(), nullable=False, default=0)
 
+    db.UniqueConstraint(user_id, signal_id, name="_unique_user_signal_pair")
+
     def __init__(self, user_id, signal_id):
         self.user_id = user_id
         self.signal_id = signal_id

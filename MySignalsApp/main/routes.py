@@ -155,8 +155,11 @@ def place_spot_trade(signal_id):
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_param)
 
-        placed_signal = PlacedSignals(user_id, signal_data.id)
-        placed_signal.insert()
+        if not query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        ):
+            placed_signal = PlacedSignals(user_id, signal_data.id)
+            placed_signal.insert()
 
         return (
             jsonify(
@@ -271,8 +274,11 @@ def place_futures_trade(signal_id):
         futures_client.new_order(**stop_param)
         futures_client.new_order(**tp_param)
 
-        placed_signal = PlacedSignals(user_id, signal_data.id)
-        placed_signal.insert()
+        if not query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        ):
+            placed_signal = PlacedSignals(user_id, signal_data.id)
+            placed_signal.insert()
 
         return (
             jsonify(
@@ -322,10 +328,13 @@ def get_signal(signal_id):
 
     signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
     try:
-        signal = query_one_filtered(Signal, id=signal_data.id)
-        placed_signal = PlacedSignals(user_id, signal_data.id)
-        placed_signal.insert()
         # TODO check hash that correct signal.provider was paid use web3.py
+        if not query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        ):
+            placed_signal = PlacedSignals(user_id, signal_data.id)
+            placed_signal.insert()
+        signal = query_one_filtered(Signal, id=signal_data.id)
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
@@ -354,9 +363,11 @@ def rate_signal(signal_id):
     signal_data = IntQuerySchema(id=signal_id)
     rating = RatingSchema(rate=rating.get("rate"))
     try:
-        signal = query_one_filtered(PlacedSignals, signal_id=signal_data.id)
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
 
-        if not signal:
+        if not placed_signal:
             return (
                 jsonify(
                     {
@@ -368,8 +379,8 @@ def rate_signal(signal_id):
                 404,
             )
 
-        signal.rating = rating.rate
-        signal.update()
+        placed_signal.rating = rating.rate
+        placed_signal.update()
 
         return (
             jsonify({"message": "success", "rating": rating.rate, "status": True}),
