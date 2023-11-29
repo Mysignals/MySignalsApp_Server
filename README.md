@@ -47,7 +47,7 @@ $ python3 run.py
 ### **Base Uri**
 ----
 ----
-temporarily hosted for live testing on **https://mysignalsapp.onrender.com**
+hosted for live testing on **https://api.mysignals.app/**
 ....
 
 
@@ -270,7 +270,8 @@ Returns: Json object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         },
         {
@@ -287,7 +288,8 @@ Returns: Json object
             },
             "status": false, //old or no longer valid
             "is_spot": false,// futures trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         },
     ],
@@ -360,7 +362,8 @@ Returns: Json object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -401,7 +404,8 @@ Returns: Json object
             },
             "status": true, //if signal is still valid
             "is_spot": false,// if is futures trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -538,7 +542,8 @@ Returns:JSON object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -634,7 +639,8 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:22 GMT",
       "id": 2,
       "is_spot": true,
-      "provider": "bingoprovider",
+      "provider": "testprovider", // provider user name
+      "provider_wallet": "0x0...",//providers wallet address
       "signal": {
         "price": 336.0,
         "quantity": 0.5,
@@ -652,7 +658,8 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:07 GMT",
       "id": 1,
       "is_spot": true,
-      "provider": "bingoprovider",
+      "provider": "testprovider", // provider user name
+      "provider_wallet": "0x0...",//providers wallet address
       "signal": {
         "price": 336.0,
         "quantity": 0.5,

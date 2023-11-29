@@ -24,13 +24,17 @@ class Signal(BaseModel):
     def __repr__(self):
         return f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider}))"
 
+    def __str__(self):
+        return f"{self.signal}"
+
     def format(self):
         return {
             "id": self.id,
             "signal": self.signal,
             "status": self.status,
             "is_spot": self.is_spot,
-            "provider": self.user.wallet,
+            "provider": self.user.user_name,
+            "provider_wallet": self.user.wallet,
             "date_created": self.date_created,
         }
 

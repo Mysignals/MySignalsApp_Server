@@ -41,16 +41,12 @@ def get_active_signals():
         filtered_signals = (
             [
                 {
-                    "id": signal.id,
+                    **signal.format(),
                     "signal": {
                         "symbol": signal.signal.get("symbol"),
                         "side": signal.signal.get("side"),
                     },
-                    "is_spot": signal.is_spot,
-                    "provider": signal.user.user_name,
-                    "provider_wallet": signal.user.wallet,
                     "provider_rating": calculate_rating(signal.provider),
-                    "date_created": signal.date_created,
                 }
                 for signal in signals
             ]
@@ -412,8 +408,8 @@ def get_user_placed_signals():
         [
             {
                 **data.signal.format(),
-                "provider": data.signal.user.user_name,
                 "user_rating": data.rating,
+                "date_created": data.date_created,
             }
             for data in placed_signals
         ]
