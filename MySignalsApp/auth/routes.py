@@ -56,7 +56,7 @@ def register_user():
         return (
             jsonify(
                 {
-                    "message": f"a confirmation mail has bee sent to {user.email}",
+                    "message": f"a confirmation mail has been sent to {user.email}",
                     "user_name": user.user_name,
                     "email": user.email,
                     "status": True,

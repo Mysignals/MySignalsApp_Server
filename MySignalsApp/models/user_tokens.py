@@ -1,4 +1,5 @@
 from MySignalsApp import db
+from datetime import datetime, timedelta
 
 
 class UserTokens(db.Model):
@@ -7,12 +8,13 @@ class UserTokens(db.Model):
     id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.String(), db.ForeignKey("users.id"), nullable=False)
     token = db.Column(db.String(), nullable=False, unique=True)
-    expiration = db.Column(db.DateTime, nullable=False)
+    expiration = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow() + timedelta(hours=2)
+    )
 
-    def __init__(self, user_id, token, expiration):
+    def __init__(self, user_id, token):
         self.user_id = user_id
         self.token = token
-        self.expiration = expiration
 
     def __repr__(self):
         return f"id({self.id}), user_id({self.user_id}), token({self.token}), expiration {self.expiration})"
