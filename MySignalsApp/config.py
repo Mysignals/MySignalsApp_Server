@@ -31,3 +31,5 @@ class App_Config:
     CACHE_DIR = "cache"
 
     FLASK_ADMIN_SWATCH = "slate"
+
+    TIMEZONE = "UTC"

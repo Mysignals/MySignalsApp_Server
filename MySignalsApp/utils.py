@@ -3,7 +3,7 @@ from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.user_tokens import UserTokens
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
@@ -59,7 +59,7 @@ def verify_reset_token(user_table, token):
         if not token_data:
             return None
         user = query_one_filtered(user_table, id=token_data.user_id)
-        if token_data.expiration >= datetime.utcnow():
+        if token_data.expiration >= datetime.now(timezone.utc):
             token_data.delete()
             return user
 
