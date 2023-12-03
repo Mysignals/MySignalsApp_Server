@@ -2,6 +2,9 @@ from MySignalsApp import db
 from datetime import datetime, timedelta, timezone
 
 
+# def lazy_utc_now():
+#     return datetime.now(tz=timezone.utc) + timedelta(hours=2)
+
 class UserTokens(db.Model):
     __tablename__ = "usertokens"
 
@@ -11,7 +14,7 @@ class UserTokens(db.Model):
     expiration = db.Column(
         db.DateTime(timezone=True),
         nullable=False,
-        default=datetime.now(timezone.utc) + timedelta(hours=2),
+        default=lambda: datetime.now(tz=timezone.utc) + timedelta(hours=2),
     )
 
     def __init__(self, user_id, token):
