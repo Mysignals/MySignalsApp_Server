@@ -13,7 +13,9 @@ class Signal(BaseModel):
     is_spot = db.Column(db.Boolean(), nullable=False, default=True)
     status = db.Column(db.Boolean(), nullable=False, default=False)
     provider = db.Column(db.String(34), db.ForeignKey("users.id"), nullable=False)
-    placed_signals = db.Relationship("PlacedSignals", backref="signal", lazy=True)
+    placed_signals = db.Relationship(
+        "PlacedSignals", backref="signal", lazy=True, cascade="all, delete-orphan"
+    )
 
     def __init__(self, signal, status, provider, is_spot=True):
         self.signal = signal
