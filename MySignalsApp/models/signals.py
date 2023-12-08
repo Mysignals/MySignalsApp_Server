@@ -17,7 +17,7 @@ class Signal(BaseModel):
         "PlacedSignals", backref="signal", lazy=True, cascade="all, delete-orphan"
     )
 
-    def __init__(self, signal, status, provider, is_spot=True):
+    def __init__(self, signal, status, provider, is_spot):
         self.signal = signal
         self.status = status
         self.provider = provider

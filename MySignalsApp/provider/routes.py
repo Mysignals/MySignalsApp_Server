@@ -202,7 +202,7 @@ def new_spot_trade():
             403,
         )
     try:
-        signal = Signal(signal_data, True, user_id)
+        signal = Signal(signal_data, True, user_id,True)
         signal.insert()
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
@@ -250,7 +250,7 @@ def new_futures_trade():
             403,
         )
     try:
-        signal = Signal(signal_data, True, user_id, is_spot=False)
+        signal = Signal(signal_data, True, user_id, False)
         signal.insert()
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
