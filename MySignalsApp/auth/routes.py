@@ -325,8 +325,8 @@ def see_sess():
 
 @auth.route("/update_keys", methods=["POST"])
 def update_keys():
-    user_id = session.get("user")
-    if not user_id:
+    user = session.get("user")
+    if not user:
         return (
             jsonify(
                 {
@@ -341,7 +341,7 @@ def update_keys():
     data = request.get_json()
     data = UpdateKeysSchema(**data)
     try:
-        user = query_one_filtered(User, id=user_id)
+        user = query_one_filtered(User, id=user.get("id"))
         if not user:
             return (
                 jsonify(
