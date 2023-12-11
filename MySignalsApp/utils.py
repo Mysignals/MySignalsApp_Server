@@ -8,6 +8,7 @@ from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
 from threading import Thread
+import os
 
 
 # db helpers
@@ -90,7 +91,10 @@ def send_email(user, url_func):
         "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
     )
     msg.html = render_template(
-        "mail_template.html", token=url_for(url_func, token=token, _external=True)
+        "mail_template.html",
+        token=url_for(url_func, token=token, _external=True)
+        if url_func == "auth.activate_user"
+        else f"https://{os.environ.get('FRONTEND', '/')}/reset_password/{token}",
     )
     Thread(
         target=send_async_mail, args=(current_app._get_current_object(), msg)

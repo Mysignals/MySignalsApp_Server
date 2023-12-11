@@ -75,7 +75,7 @@ class ValidEmailSchema(BaseModel):
         return v
 
 
-class ResetPasswordSchema(StringUUIDQuerySchema, ValidEmailSchema):
+class ResetPasswordSchema(StringUUIDQuerySchema):
     password: constr(max_length=64, min_length=8)
     confirm_password: constr(max_length=64, min_length=8)
 

@@ -202,7 +202,7 @@ def new_spot_trade():
             403,
         )
     try:
-        signal = Signal(signal_data, True, user_id,True)
+        signal = Signal(signal_data, True, user_id, True)
         signal.insert()
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
