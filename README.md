@@ -106,8 +106,8 @@ There are three roles available, role will be provided at login and `base_uri/au
   "user_name":"user name",
   "password":"password at least 8 characters",
   "confirm_password":"confirm password",
-  "api_key":"User Binance account api key",
-  "api_secret":"User Bianance account api secret"
+  "referrers_code":"referal code to register",// "" if no ref code
+  "wallet":"User wallet address"
 }
 ```
 - Returns `message` ,`user name` and `email`
@@ -147,6 +147,7 @@ There are three roles available, role will be provided at login and `base_uri/au
     "id":"user id",
     "has_api_keys": true,
     "user_name": "user_name",
+    "referral_code":"90jeu378",
     "is_active": true,//boolean- if account is active or not
     "permission": "User",//string 'User' or array of permissions
 }
@@ -211,6 +212,9 @@ Returns:
     "id":"user id",
     "has_api_keys": false,
     "email": "email",
+    "referral_code": "90c44000",// users referral code
+    "referrals": 0,
+    "referrers_wallet": null,//wallet address of referrer
     "user_name": "user_name",
     "is_active": false,
     "roles": "['User','Rgistrar']",
