@@ -7,13 +7,21 @@ class RegisterSchema(BaseModel):
     user_name: constr(
         regex=r"^[a-zA-Z0-9_]+$", to_lower=True, max_length=345, min_length=1
     )
+    wallet: constr(min_length=42, max_length=42)
     password: constr(max_length=64, min_length=8)
     confirm_password: constr(max_length=64, min_length=8)
+    referral_code: constr(max_length=8, min_length=0)
 
     @validator("email")
     def valid_email_length(cls, v):
         if len(v) > 345:
             raise ValueError
+        return v
+
+    @validator("wallet")
+    def valid_wallet_hex(cls, v):
+        if not ("0x" in v[:2]):
+            raise ValueError("Invalid wallet Address")
         return v
 
     @validator("confirm_password")

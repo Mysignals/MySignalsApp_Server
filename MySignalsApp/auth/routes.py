@@ -46,10 +46,15 @@ def register_user():
                 ),
                 403,
             )
+
         user = User(
             user_name=data.user_name,
             email=data.email,
             password=bcrypt.generate_password_hash(data.password).decode("utf-8"),
+            referrers_code=data.referral_code
+            if query_one_filtered(User, referral_code=data.referral_code)
+            else None,
+            wallet=data.wallet,
         )
         user.insert()
         send_email(user, "auth.activate_user")
@@ -159,6 +164,7 @@ def login_user():
                         "is_active": user.is_active,
                         "has_api_keys": bool(user.api_key and user.api_secret),
                         "permission": user.roles.value,
+                        "referral_code": user.referral_code,
                         "status": True,
                     }
                 ),
@@ -174,6 +180,7 @@ def login_user():
                     "is_active": user.is_active,
                     "has_api_keys": bool(user.api_key and user.api_secret),
                     "permission": user.roles.value,
+                    "referral_code": user.referral_code,
                     "status": True,
                 }
             ),
@@ -299,13 +306,8 @@ def see_sess():
         return jsonify(
             {
                 "message": "Success",
-                "email": user.email,
-                "user_name": user.user_name,
-                "id": user.id,
-                "is_active": user.is_active,
+                **user.format(),
                 "roles": user.roles.value,
-                "has_api_keys": bool(user.api_key and user.api_secret),
-                "created_on": user.date_created,
                 "status": True,
             }
         )
