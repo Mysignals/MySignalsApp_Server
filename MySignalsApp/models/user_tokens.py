@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 # def lazy_utc_now():
 #     return datetime.now(tz=timezone.utc) + timedelta(hours=2)
 
+
 class UserTokens(db.Model):
     __tablename__ = "usertokens"
 

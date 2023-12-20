@@ -178,17 +178,6 @@ def get_time():
 @provider.route("/spot/new", methods=["POST"])
 def new_spot_trade():
     user_id = has_permission(session, "Provider")
-
-    data = request.get_json()
-    data = SpotSchema(**data)
-
-    signal_data = dict(
-        symbol=data.symbol,
-        side=data.side,
-        quantity=data.quantity,
-        price=data.price,
-        stops=dict(sl=data.sl, tp=data.tp),
-    )
     user = is_active(User, user_id)
     if not user.wallet:
         return (
@@ -201,6 +190,17 @@ def new_spot_trade():
             ),
             403,
         )
+
+    data = request.get_json()
+    data = SpotSchema(**data)
+
+    signal_data = dict(
+        symbol=data.symbol,
+        side=data.side,
+        quantity=data.quantity,
+        price=data.price,
+        stops=dict(sl=data.sl, tp=data.tp),
+    )
     try:
         signal = Signal(signal_data, True, user_id, True)
         signal.insert()
@@ -225,18 +225,6 @@ def new_spot_trade():
 @provider.route("/futures/new", methods=["POST"])
 def new_futures_trade():
     user_id = has_permission(session, "Provider")
-
-    data = request.get_json()
-    data = FuturesSchema(**data)
-
-    signal_data = dict(
-        symbol=data.symbol,
-        side=data.side,
-        quantity=data.quantity,
-        price=data.price,
-        leverage=data.leverage,
-        stops=dict(sl=data.sl, tp=data.tp),
-    )
     user = is_active(User, user_id)
     if not user.wallet:
         return (
@@ -249,6 +237,18 @@ def new_futures_trade():
             ),
             403,
         )
+
+    data = request.get_json()
+    data = FuturesSchema(**data)
+
+    signal_data = dict(
+        symbol=data.symbol,
+        side=data.side,
+        quantity=data.quantity,
+        price=data.price,
+        leverage=data.leverage,
+        stops=dict(sl=data.sl, tp=data.tp),
+    )
     try:
         signal = Signal(signal_data, True, user_id, False)
         signal.insert()

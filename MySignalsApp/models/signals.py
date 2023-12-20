@@ -1,7 +1,7 @@
 from sqlalchemy.dialects.postgresql import JSON
 from MySignalsApp.models.base import BaseModel
 from MySignalsApp import db, admin
-from flask import session, flash
+from flask import session, flash, redirect
 from flask_admin.contrib.sqla import ModelView
 
 
@@ -55,7 +55,7 @@ class SignalModelView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         flash("you are not authorized", category="error")
-        return self.render("admin/login.html")
+        return redirect("/admin/login", 302)
 
     can_create = False
     column_searchable_list = ["provider"]

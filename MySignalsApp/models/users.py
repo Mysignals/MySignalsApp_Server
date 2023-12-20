@@ -84,12 +84,12 @@ class AdminLoginView(BaseView):
         if form.validate_on_submit():
             email, password = form.email.data, form.password.data
             if not email or not password:
-                flash("One or more missing fields")
-                return self.render("admin/login.html", category="error"), 400
+                flash("One or more missing fields", category="error")
+                return redirect("/admin/login", 302)
             user = query_one_filtered(User, email=email)
             if not user or not bcrypt.check_password_hash(user.password, password):
                 flash("Incorrect email or password", category="error")
-                return self.render("admin/login.html"), 401
+                return redirect("/admin/login", 302)
 
             session["user"] = {"id": user.id, "permission": user.roles.value}
             return redirect("/admin", 302)
@@ -117,7 +117,7 @@ class UserModelView(ModelView):
 
     def inaccessible_callback(self, name, **kwargs):
         flash("You are not Authorized", category="error")
-        return self.render("admin/login.html")
+        return redirect("/admin/login", 302)
 
     can_create = False
     can_delete = False
