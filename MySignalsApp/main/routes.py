@@ -324,13 +324,26 @@ def get_signal(signal_id):
 
     signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
     try:
+
+        signal= query_one_filtered(Signal, id=signal_data.id)
+        if not signal:
+            return (
+                jsonify(
+                    {
+                        "error": "Resource Not found",
+                        "message": "Signal not found, This signal does not exist",
+                        "status": False,
+                    }
+                ),
+                404,
+            )
         # TODO check hash that correct signal.provider was paid use web3.py
         if not query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
         ):
             placed_signal = PlacedSignals(user_id, signal_data.id)
             placed_signal.insert()
-        signal = query_one_filtered(Signal, id=signal_data.id)
+        
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),

@@ -215,6 +215,7 @@ Returns:
     "referral_code": "90c44000",// users referral code
     "referrals": 0,
     "referrers_wallet": null,//wallet address of referrer
+    "wallet": "0xodn",//wallet address of user
     "user_name": "user_name",
     "is_active": false,
     "roles": "['User','Rgistrar']",
