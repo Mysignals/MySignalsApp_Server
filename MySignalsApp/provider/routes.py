@@ -13,6 +13,7 @@ from binance.error import ClientError
 from MySignalsApp import cache
 from MySignalsApp.utils import (
     query_paginate_filtered,
+    has_api_keys,
     has_permission,
     query_one_filtered,
     is_active,
@@ -179,6 +180,9 @@ def get_time():
 def new_spot_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+
+    has_api_keys(user)
+
     if not user.wallet:
         return (
             jsonify(
@@ -226,6 +230,9 @@ def new_spot_trade():
 def new_futures_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+
+    has_api_keys(user)
+
     if not user.wallet:
         return (
             jsonify(

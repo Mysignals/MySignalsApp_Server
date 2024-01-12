@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, current_app
 from pydantic import ValidationError
+from binance.error import ClientError
 from web3.exceptions import TransactionNotFound
 from MySignalsApp import db
 
@@ -35,6 +36,14 @@ def input_validation_error(e):
     return (
         jsonify({"error": "Bad Request", "message": msg, "status": False}),
         400,
+    )
+
+
+@error.app_errorhandler(ClientError)
+def handle_binance_error(e):
+    return (
+        jsonify({"error": e.error_code, "message": e.error_message, "status": False}),
+        e.status_code,
     )
 
 

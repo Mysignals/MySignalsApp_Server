@@ -76,7 +76,7 @@ class WalletSchema(BaseModel):
     wallet: constr(min_length=42, max_length=42)
 
     @validator("wallet")
-    def valid_tx_hash(cls, v):
+    def valid_wallet(cls, v):
         if not ("0x" in v[:2]):
             raise ValueError("Invalid Wallet Address")
         return v

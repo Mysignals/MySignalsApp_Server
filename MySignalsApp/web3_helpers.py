@@ -14,7 +14,7 @@ contract = w3.eth.contract(address=contract_address, abi=abi)
 def is_transaction_confirmed(tx_hash: _Hash32) -> TxReceipt:
     tx_receipt = w3.eth.get_transaction_receipt(tx_hash)
     if not (
-        tx_receipt.status and (w3.eth.get_block_number() - tx_receipt.blockNumber) > 2
+        tx_receipt.status and (w3.eth.get_block_number() - tx_receipt.blockNumber) >= 2
     ):
         raise UtilError("Forbidden", 403, "This was not a successful transaction")
     return tx_receipt
@@ -26,7 +26,7 @@ def get_compensate_provider_event(tx_receipt: TxReceipt) -> AttributeDict:
         if (
             log["topics"][0]
             == w3.keccak(
-                text="CompensateProvider(address,uint256,uint256,string)"
+                text="CompensateProvider(address,address,uint256,uint256,string)"
             ).hex()
         ):
             log = log
@@ -42,12 +42,13 @@ def get_compensation_details(log: AttributeDict) -> AttributeDict:
             "provider": args.provider,
             "signalId": args.signalId,
             "userId": args.userId,
+            "referrer": args.referrer,
         }
     )
 
 
 def verify_compensation_details(
-    tx_hash: _Hash32, provider: _Hash32, user_id: str, siignal_id: int
+    tx_hash: _Hash32, provider: _Hash32, user_id: str, signal_id: int
 ) -> AttributeDict:
     tx_receipt = is_transaction_confirmed(tx_hash)
     log = get_compensate_provider_event(tx_receipt)
@@ -58,11 +59,69 @@ def verify_compensation_details(
     provider_check = w3.to_checksum_address(data.provider) == w3.to_checksum_address(
         provider
     )
+    # TODO: Add referrer check
     user_check = data.userId == user_id
-    signal_check = data.signalId == siignal_id
+    signal_check = data.signalId == signal_id
     if not (contract_check and provider_check and user_check and signal_check):
         raise UtilError(
             "Forbidden", 403, "Invalid Transaction, compensation details do not match"
         )
 
     return True
+
+
+def prepare_spot_trade(signal: dict, trade_uuid: str):
+    params = {
+        "symbol": signal["symbol"],
+        "side": signal["side"],
+        "type": "LIMIT",
+        "timeInForce": "GTC",
+        "quantity": signal["quantity"],
+        "price": signal["price"],
+        "newClientOrderId": trade_uuid,
+    }
+    stops: dict[str] = signal["stops"]
+
+    stop_params = {
+        "symbol": signal["symbol"],
+        "side": "SELL" if signal["side"] == "BUY" else "BUY",
+        "price": stops["tp"],
+        "quantity": signal["quantity"],
+        "stopPrice": stops["sl"],
+        "stopLimitPrice": stops["sl"],
+        "stopLimitTimeInForce": "GTC",
+    }
+
+    return (params, stops, stop_params)
+
+
+def prepare_futures_trade(signal: dict, trade_uuid: str):
+    params = {
+        "symbol": signal["symbol"],
+        "side": signal["side"],
+        "type": "LIMIT",
+        "timeInForce": "GTC",
+        "quantity": signal["quantity"],
+        "price": signal["price"],
+        "newClientOrderId": trade_uuid,
+    }
+    stops: dict[str] = signal["stops"]
+
+    stop_params = {
+        "symbol": signal["symbol"],
+        "side": "SELL" if signal["side"] == "BUY" else "BUY",
+        "closePosition": "true",
+        "type": "STOP_MARKET",
+        "stopPrice": stops["sl"],
+        "quantity": signal["quantity"],
+    }
+    tp_params = {
+        "symbol": signal["symbol"],
+        "side": "SELL" if signal["side"] == "BUY" else "BUY",
+        "stopPrice": stops["tp"],
+        "quantity": signal["quantity"],
+        "closePosition": "true",
+        "type": "TAKE_PROFIT_MARKET",
+    }
+
+    return (params, stops, stop_params, tp_params)
