@@ -3,11 +3,12 @@ from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.user_tokens import UserTokens
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail
 from flask_mail import Message
 from threading import Thread
+import os
 
 
 # db helpers
@@ -46,9 +47,9 @@ def query_paginate_filtered(table, page, **kwargs):
 
 
 # token helpers
-def get_reset_token(user, expires=datetime.utcnow() + timedelta(hours=1)):
+def get_reset_token(user):
     token = get_uuid()
-    token_data = UserTokens(user_id=user.id, token=token, expiration=expires)
+    token_data = UserTokens(user_id=user.id, token=token)
     token_data.insert()
     return token
 
@@ -58,14 +59,13 @@ def verify_reset_token(user_table, token):
         token_data = query_one_filtered(UserTokens, token=token)
         if not token_data:
             return None
-
-        if datetime.utcnow() <= token_data.expiration:
-            user = query_one_filtered(user_table, id=token_data.user_id)
+        user = query_one_filtered(user_table, id=token_data.user_id)
+        if token_data.expiration >= datetime.now(timezone.utc):
             token_data.delete()
             return user
-        else:
-            token_data.delete()
-            return None
+
+        token_data.delete() if user.is_active else user.delete()
+        return None
     except Exception as e:
         current_app.log_exception(e)
         raise UtilError("Internal server error", 500, "It's not you it's us")
@@ -91,7 +91,10 @@ def send_email(user, url_func):
         "Secret Link Request", sender="noreply@demo.com", recipients=[user.email]
     )
     msg.html = render_template(
-        "mail_template.html", token=url_for(url_func, token=token, _external=True)
+        "mail_template.html",
+        token=url_for(url_func, token=token, _external=True)
+        if url_func == "auth.activate_user"
+        else f"https://{os.environ.get('FRONTEND', '/')}/reset_password/{token}",
     )
     Thread(
         target=send_async_mail, args=(current_app._get_current_object(), msg)
@@ -139,9 +142,7 @@ def calculate_rating(provider_id):
         .scalars()
         .all()
     )
-    rating_total = 0
     if not ratings:
         return 0
-    for rating in ratings:
-        rating_total += rating
+    rating_total = sum(ratings)
     return round(rating_total / (len(ratings) if ratings else 1), 2)

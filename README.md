@@ -47,7 +47,7 @@ $ python3 run.py
 ### **Base Uri**
 ----
 ----
-temporarily hosted for live testing on **https://mysignalsapp.onrender.com**
+hosted for live testing on **https://api.mysignals.app/**
 ....
 
 
@@ -106,8 +106,8 @@ There are three roles available, role will be provided at login and `base_uri/au
   "user_name":"user name",
   "password":"password at least 8 characters",
   "confirm_password":"confirm password",
-  "api_key":"User Binance account api key",
-  "api_secret":"User Bianance account api secret"
+  "referrers_code":"referal code to register",// "" if no ref code
+  "wallet":"User wallet address"
 }
 ```
 - Returns `message` ,`user name` and `email`
@@ -147,6 +147,7 @@ There are three roles available, role will be provided at login and `base_uri/au
     "id":"user id",
     "has_api_keys": true,
     "user_name": "user_name",
+    "referral_code":"90jeu378",
     "is_active": true,//boolean- if account is active or not
     "permission": "User",//string 'User' or array of permissions
 }
@@ -211,6 +212,10 @@ Returns:
     "id":"user id",
     "has_api_keys": false,
     "email": "email",
+    "referral_code": "90c44000",// users referral code
+    "referrals": 0,
+    "referrers_wallet": null,//wallet address of referrer
+    "wallet": "0xodn",//wallet address of user
     "user_name": "user_name",
     "is_active": false,
     "roles": "['User','Rgistrar']",
@@ -270,7 +275,8 @@ Returns: Json object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         },
         {
@@ -287,7 +293,8 @@ Returns: Json object
             },
             "status": false, //old or no longer valid
             "is_spot": false,// futures trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         },
     ],
@@ -360,7 +367,8 @@ Returns: Json object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -401,7 +409,8 @@ Returns: Json object
             },
             "status": true, //if signal is still valid
             "is_spot": false,// if is futures trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -538,7 +547,8 @@ Returns:JSON object
             },
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
-            "provider": "0x0...",//providers wallet address
+            "provider": "testprovider", // provider user name
+            "provider_wallet": "0x0...",//providers wallet address
             "date_created": "sun 31 march 2020 13:42:00",
         }
 }
@@ -634,7 +644,8 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:22 GMT",
       "id": 2,
       "is_spot": true,
-      "provider": "bingoprovider",
+      "provider": "testprovider", // provider user name
+      "provider_wallet": "0x0...",//providers wallet address
       "signal": {
         "price": 336.0,
         "quantity": 0.5,
@@ -652,7 +663,8 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:07 GMT",
       "id": 1,
       "is_spot": true,
-      "provider": "bingoprovider",
+      "provider": "testprovider", // provider user name
+      "provider_wallet": "0x0...",//providers wallet address
       "signal": {
         "price": 336.0,
         "quantity": 0.5,

@@ -46,17 +46,22 @@ def register_user():
                 ),
                 403,
             )
+
         user = User(
             user_name=data.user_name,
             email=data.email,
             password=bcrypt.generate_password_hash(data.password).decode("utf-8"),
+            referrers_code=data.referral_code
+            if query_one_filtered(User, referral_code=data.referral_code)
+            else None,
+            wallet=data.wallet,
         )
         user.insert()
         send_email(user, "auth.activate_user")
         return (
             jsonify(
                 {
-                    "message": f"a confirmation mail has bee sent to {user.email}",
+                    "message": f"a confirmation mail has been sent to {user.email}",
                     "user_name": user.user_name,
                     "email": user.email,
                     "status": True,
@@ -157,12 +162,11 @@ def login_user():
                         "id": user.id,
                         "user_name": user.user_name,
                         "is_active": user.is_active,
-                        "has_api_keys": True
-                        if user.api_key and user.api_secret
-                        else False,
+                        "has_api_keys": bool(user.api_key and user.api_secret),
                         "permission": user.roles.value,
+                        "referral_code": user.referral_code,
                         "status": True,
-                    },
+                    }
                 ),
                 200,
             )
@@ -174,10 +178,11 @@ def login_user():
                     "id": user.id,
                     "user_name": user.user_name,
                     "is_active": user.is_active,
-                    "has_api_keys": True if user.api_key and user.api_secret else False,
+                    "has_api_keys": bool(user.api_key and user.api_secret),
                     "permission": user.roles.value,
+                    "referral_code": user.referral_code,
                     "status": True,
-                },
+                }
             ),
             200,
         )
@@ -201,8 +206,7 @@ def reset_request():
     data = request.get_json()
     data = ValidEmailSchema(**data)
     try:
-        user = query_one_filtered(User, email=data.email)
-        if user:
+        if user := query_one_filtered(User, email=data.email):
             send_email(user, "auth.reset_password")
 
             return (
@@ -243,8 +247,7 @@ def reset_password(token):
     data = request.get_json()
     data = ResetPasswordSchema(token=token, **data)
     try:
-        user = verify_reset_token(User, data.token)
-        if user:
+        if user := verify_reset_token(User, data.token):
             user.password = bcrypt.generate_password_hash(data.password).decode("utf-8")
             user.update()
             session.pop("user", None)
@@ -303,13 +306,8 @@ def see_sess():
         return jsonify(
             {
                 "message": "Success",
-                "email": user.email,
-                "user_name": user.user_name,
-                "id": user.id,
-                "is_active": user.is_active,
+                **user.format(),
                 "roles": user.roles.value,
-                "has_api_keys": True if user.api_key and user.api_secret else False,
-                "created_on": user.date_created,
                 "status": True,
             }
         )
@@ -329,8 +327,8 @@ def see_sess():
 
 @auth.route("/update_keys", methods=["POST"])
 def update_keys():
-    user_id = session.get("user")
-    if not user_id:
+    user = session.get("user")
+    if not user:
         return (
             jsonify(
                 {
@@ -345,7 +343,7 @@ def update_keys():
     data = request.get_json()
     data = UpdateKeysSchema(**data)
     try:
-        user = query_one_filtered(User, id=user_id)
+        user = query_one_filtered(User, id=user.get("id"))
         if not user:
             return (
                 jsonify(
@@ -367,7 +365,7 @@ def update_keys():
                 "message": "success",
                 "user_name": user.user_name,
                 "is_active": user.is_active,
-                "has_api_keys": True if user.api_key and user.api_secret else False,
+                "has_api_keys": bool(user.api_key and user.api_secret),
                 "status": True,
             }
         )
