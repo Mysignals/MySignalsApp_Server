@@ -470,11 +470,9 @@ Returns:JSON object
 
   `POST '/spot/trade/${signal_id}'`
 - place spot trade on logged in users binance account
-- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+- Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
-{
-    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
-}
+{ }
 ```
 - Returns:JSON object
 ```json
@@ -498,11 +496,9 @@ Returns:JSON object
 
   `POST '/futures/trade/${signal_id}'`
 - place futures trade on logged in users binance account
-- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+- Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
-{
-    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
-}
+{ }
 ```
 - Returns:JSON object
 ```json
@@ -525,7 +521,7 @@ Returns:JSON object
 ---
 <br>
 
-  `GET '/signal/${signal_id}?tx_hash=${tx_hash}'`
+  `GET or POST '/signal/${signal_id}?tx_hash=${tx_hash}'`
 - get complete details of a signal, requires logged in
 - Request Arguements: query parameter `signal_id`- integer,`tx_hash` - string; id of signal to get;tx hash of payment made to contract
 

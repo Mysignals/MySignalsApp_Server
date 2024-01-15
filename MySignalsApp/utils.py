@@ -5,7 +5,7 @@ from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.user_tokens import UserTokens
 from datetime import datetime, timezone
 from flask import current_app, url_for, render_template
-from MySignalsApp import db, mail
+from MySignalsApp import db, mail, cache
 from flask_mail import Message
 from threading import Thread
 import os
@@ -131,7 +131,7 @@ def is_active(table, user_id):
 
 # rating helpers
 
-
+@cache.memoize(timeout=43200) # 43200 seconds = 0.5 days
 def calculate_rating(provider_id):
     ratings = (
         db.session.execute(
