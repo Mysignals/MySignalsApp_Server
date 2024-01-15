@@ -23,7 +23,7 @@ class RegisterSchema(BaseModel):
 
     @validator("wallet")
     def valid_wallet_hex(cls, v):
-        if not ("0x" in v[:2]):
+        if "0x" not in v[:2]:
             raise ValueError("Invalid wallet Address")
         return v
 
@@ -77,7 +77,7 @@ class WalletSchema(BaseModel):
 
     @validator("wallet")
     def valid_wallet(cls, v):
-        if not ("0x" in v[:2]):
+        if "0x" not in v[:2]:
             raise ValueError("Invalid Wallet Address")
         return v
 
@@ -108,7 +108,7 @@ class ValidTxSchema(IntQuerySchema):
 
     @validator("tx_hash")
     def valid_tx_hash(cls, v):
-        if not ("0x" in v[:2]):
+        if "0x" not in v[:2]:
             raise ValueError("Invalid tx hash")
         return v
 
