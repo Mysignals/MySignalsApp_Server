@@ -5,15 +5,18 @@ from flask_migrate import Migrate
 from flask_session import Session
 from flask_admin import Admin
 from flask_limiter import Limiter
-from flask import Flask, session, send_from_directory
+from flask import Flask, session
 from flask_caching import Cache
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 from flask_cors import CORS
+from dotenv import load_dotenv
+import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 
+load_dotenv(".env")
 
 db = SQLAlchemy()
 
@@ -89,3 +92,12 @@ def create_app(config_class=App_Config):
     #     db.create_all()
 
     return app
+
+
+def get_contract_details():
+    with open("MySignalsApp/contract_details.json") as f:
+        data = json.load(f)
+    return data["address"], data["abi"]
+
+
+contract_address, abi = get_contract_details()

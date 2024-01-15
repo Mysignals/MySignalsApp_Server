@@ -21,6 +21,13 @@ from MySignalsApp.utils import (
     is_active,
 )
 from binance.spot import Spot
+from MySignalsApp.errors.handlers import UtilError
+from MySignalsApp.web3_helpers import (
+    verify_compensation_details,
+    prepare_spot_trade,
+    prepare_futures_trade,
+)
+from MySignalsApp import db
 from time import sleep
 import os
 
@@ -85,8 +92,6 @@ def place_spot_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
 
-    tx_hash = (request.get_json()).get("tx_hash")
-
     has_api_keys(user)
 
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
@@ -99,21 +104,25 @@ def place_spot_trade(signal_id):
     )
     signal = ""
     trade_uuid = get_uuid()
-    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+    signal_data = IntQuerySchema(id=signal_id)
     try:
-        # TODO check signal_data.tx_hash that correct signal.provider was paid
-        signal = query_one_filtered(Signal, id=signal_data.id)
-        if not signal:
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
+
+        if not placed_signal:
             return (
                 jsonify(
                     {
                         "error": "Resource Not found",
-                        "message": "The signal with the provided Id does not exist",
+                        "message": "Trade not found, Have you purchased this trade?",
                         "status": False,
                     }
                 ),
                 404,
             )
+        signal = placed_signal.signal
+
         if not signal.is_spot:
             return (
                 jsonify(
@@ -125,37 +134,13 @@ def place_spot_trade(signal_id):
                 ),
                 403,
             )
+
         signal = signal.signal
-
-        params = {
-            "symbol": signal["symbol"],
-            "side": signal["side"],
-            "type": "LIMIT",
-            "timeInForce": "GTC",
-            "quantity": signal["quantity"],
-            "price": signal["price"],
-            "newClientOrderId": trade_uuid,
-        }
-        stops = signal["stops"]
-
-        stop_param = {
-            "symbol": signal["symbol"],
-            "side": "SELL" if signal["side"] == "BUY" else "BUY",
-            "price": stops["tp"],
-            "quantity": signal["quantity"],
-            "stopPrice": stops["sl"],
-            "stopLimitPrice": stops["sl"],
-            "stopLimitTimeInForce": "GTC",
-        }
+        params, stops, stop_params = prepare_spot_trade(signal, trade_uuid)
+        print(params, stops, stop_params)
         trade = spot_client.new_order(**params)
         sleep(1)
-        trade2 = spot_client.new_oco_order(**stop_param)
-
-        if not query_one_filtered(
-            PlacedSignals, signal_id=signal_data.id, user_id=user_id
-        ):
-            placed_signal = PlacedSignals(user_id, signal_data.id)
-            placed_signal.insert()
+        trade2 = spot_client.new_oco_order(**stop_params)
 
         return (
             jsonify(
@@ -168,11 +153,13 @@ def place_spot_trade(signal_id):
             200,
         )
     except ClientError as e:
-        if spot_client.get_order(signal["symbol"], origClientOrderId=trade_uuid):
-            spot_client.cancel_order(signal["symbol"], origClientOrderId=trade_uuid)
         return (
             jsonify(
-                {"error": e.error_code, "message": e.error_message, "status": False}
+                {
+                    "error": e.error_code,
+                    "message": f"{e.error_message} Warning: some orders might have been successful",
+                    "status": False,
+                }
             ),
             e.status_code,
         )
@@ -194,8 +181,6 @@ def place_spot_trade(signal_id):
 def place_futures_trade(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    #  TODO uncomment when hash check is implemented
-    tx_hash = (request.get_json()).get("tx_hash")
 
     has_api_keys(user)
 
@@ -207,23 +192,26 @@ def place_futures_trade(signal_id):
         secret=user_api_secret,
         base_url="https://testnet.binancefuture.com",
     )
-    # TODO check signal_data.tx_hash that correct signal.provider was paid
     signal = ""
     trade_uuid = get_uuid()
-    signal_data = ValidTxSchema(id=signal_id, tx_hash=tx_hash)
+    signal_data = IntQuerySchema(id=signal_id)
     try:
-        signal = query_one_filtered(Signal, id=signal_data.id)
-        if not signal:
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
+        if not placed_signal:
             return (
                 jsonify(
                     {
                         "error": "Resource Not found",
-                        "message": "The signal with the provided Id does not exist",
+                        "message": "Trade not found, Have you purchased this trade?",
                         "status": False,
                     }
                 ),
                 404,
             )
+
+        signal = placed_signal.signal
         if signal.is_spot:
             return (
                 jsonify(
@@ -235,46 +223,17 @@ def place_futures_trade(signal_id):
                 ),
                 403,
             )
+
         signal = signal.signal
+        params, stops, stop_params, tp_params = prepare_futures_trade(
+            signal, trade_uuid
+        )
 
-        params = {
-            "symbol": signal["symbol"],
-            "side": signal["side"],
-            "type": "LIMIT",
-            "timeInForce": "GTC",
-            "quantity": signal["quantity"],
-            "price": signal["price"],
-            "newClientOrderId": trade_uuid,
-        }
-        stops = signal["stops"]
-
-        stop_param = {
-            "symbol": signal["symbol"],
-            "side": "SELL" if signal["side"] == "BUY" else "BUY",
-            "closePosition": "true",
-            "type": "STOP_MARKET",
-            "stopPrice": stops["sl"],
-            "quantity": signal["quantity"],
-        }
-        tp_param = {
-            "symbol": signal["symbol"],
-            "side": "SELL" if signal["side"] == "BUY" else "BUY",
-            "stopPrice": stops["tp"],
-            "quantity": signal["quantity"],
-            "closePosition": "true",
-            "type": "TAKE_PROFIT_MARKET",
-        }
         lev = futures_client.change_leverage(signal["symbol"], signal["leverage"])
         futures_client.new_order(**params)
         sleep(1)
-        futures_client.new_order(**stop_param)
-        futures_client.new_order(**tp_param)
-
-        if not query_one_filtered(
-            PlacedSignals, signal_id=signal_data.id, user_id=user_id
-        ):
-            placed_signal = PlacedSignals(user_id, signal_data.id)
-            placed_signal.insert()
+        futures_client.new_order(**stop_params)
+        futures_client.new_order(**tp_params)
 
         return (
             jsonify(
@@ -296,7 +255,7 @@ def place_futures_trade(signal_id):
             jsonify(
                 {
                     "error": e.error_code,
-                    "message": f"{e.error_message}. Warning: some orders might have been successfull",
+                    "message": f"{e.error_message}. Warning: some orders might have been successful",
                     "status": False,
                 }
             ),
@@ -316,38 +275,37 @@ def place_futures_trade(signal_id):
         )
 
 
-@main.route("/signal/<int:signal_id>")
+@main.route("/signal/<int:signal_id>", methods=["GET", "POST"])
 def get_signal(signal_id):
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
     data = request.args.get("tx_hash", None)
 
     signal_data = ValidTxSchema(id=signal_id, tx_hash=data)
-    try:
 
-        signal= query_one_filtered(Signal, id=signal_data.id)
+    try:
+        signal = query_one_filtered(Signal, id=signal_data.id)
+
         if not signal:
-            return (
-                jsonify(
-                    {
-                        "error": "Resource Not found",
-                        "message": "Signal not found, This signal does not exist",
-                        "status": False,
-                    }
-                ),
-                404,
-            )
-        # TODO check hash that correct signal.provider was paid use web3.py
+            raise UtilError("Resource Not found", 404, "This signal Id does not exist")
+
+        verify_compensation_details(
+            signal_data.tx_hash, signal.user.wallet, user_id, signal_id
+        )
         if not query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
         ):
-            placed_signal = PlacedSignals(user_id, signal_data.id)
+            placed_signal = PlacedSignals(user_id, signal_data.id, signal_data.tx_hash)
             placed_signal.insert()
-        
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
             200,
+        )
+    except UtilError as e:
+        return (
+            jsonify({"error": e.error, "message": e.message, "status": False}),
+            e.code,
         )
     except Exception as e:
         current_app.log_exception(exc_info=e)
@@ -421,6 +379,7 @@ def get_user_placed_signals():
         [
             {
                 **data.signal.format(),
+                "tx_hash": data.tx_hash,
                 "user_rating": data.rating,
                 "date_created": data.date_created,
             }

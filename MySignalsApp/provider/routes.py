@@ -6,19 +6,24 @@ from MySignalsApp.schemas import (
     PageQuerySchema,
 )
 from flask import Blueprint, jsonify, request, session, current_app
+from MySignalsApp.web3_helpers import prepare_futures_trade, prepare_spot_trade
 from MySignalsApp.models.users import User
+from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from binance.um_futures import UMFutures
 from binance.error import ClientError
+from binance.spot import Spot
 from MySignalsApp import cache
 from MySignalsApp.utils import (
     query_paginate_filtered,
+    has_api_keys,
     has_permission,
     query_one_filtered,
     is_active,
     calculate_rating,
 )
 from binance.spot import Spot
+import os
 
 provider = Blueprint("provider", __name__, url_prefix="/provider")
 
@@ -179,6 +184,9 @@ def get_time():
 def new_spot_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+
+    has_api_keys(user)
+
     if not user.wallet:
         return (
             jsonify(
@@ -201,6 +209,15 @@ def new_spot_trade():
         price=data.price,
         stops=dict(sl=data.sl, tp=data.tp),
     )
+
+    spot_client = Spot(
+        api_key=os.getenv("SKEY"),
+        api_secret=os.getenv("SSEC"),
+        base_url="https://testnet.binance.vision",
+    )
+    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid())
+    spot_client.new_order_test(**params)
+    spot_client.new_oco_order(**stop_params)
     try:
         signal = Signal(signal_data, True, user_id, True)
         signal.insert()
@@ -226,6 +243,9 @@ def new_spot_trade():
 def new_futures_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
+
+    has_api_keys(user)
+
     if not user.wallet:
         return (
             jsonify(
@@ -249,6 +269,16 @@ def new_futures_trade():
         leverage=data.leverage,
         stops=dict(sl=data.sl, tp=data.tp),
     )
+
+    futures_client = UMFutures(
+        key=os.getenv("FKEY"),
+        secret=os.getenv("FSEC"),
+        base_url="https://testnet.binancefuture.com",
+    )
+    params, _, stop_params, tp_params = prepare_futures_trade(signal_data, get_uuid())
+    futures_client.new_order_test(**params)
+    futures_client.new_order_test(**stop_params)
+    futures_client.new_order_test(**tp_params)
     try:
         signal = Signal(signal_data, True, user_id, False)
         signal.insert()
