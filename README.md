@@ -216,10 +216,48 @@ Returns:
     "referrals": 0,
     "referrers_wallet": null,//wallet address of referrer
     "wallet": "0xodn",//wallet address of user
+    "unread_notifications":1,
     "user_name": "user_name",
     "is_active": false,
     "roles": "['User','Rgistrar']",
     "created_on": "thu 30 june 2021 12:24:07"
+}
+```
+---
+<br>
+
+  `GET '/auth/notifications'` or `GET '/auth/notifications?page=${page}'`
+- gets all notifications of a user
+- Requires logged in
+- Request Arguements:query parameter `page`- integer defaults to `1` if not provided
+- Returns: JSON object paginated
+```json
+{
+  "message": "success",
+  "notifications": [
+    {
+      "date_created": "Mon, 15 Jan 2024 17:46:38 GMT",
+      "id": 1,
+      "message": "test notification",
+      "user": "bingoprovider"
+    }
+  ],
+  "pages": 1,
+  "status": true,
+  "total": 1
+}
+```
+---
+<br>
+
+  `GET '/auth/notifications/count'`
+- gets total number of unread notifications of logged in user
+- Returns: JSON object
+```json
+{
+  "message": "success",
+  "status": true,
+  "unread_notifications": 1
 }
 ```
 ---
@@ -470,11 +508,9 @@ Returns:JSON object
 
   `POST '/spot/trade/${signal_id}'`
 - place spot trade on logged in users binance account
-- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+- Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
-{
-    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
-}
+{ }
 ```
 - Returns:JSON object
 ```json
@@ -498,11 +534,9 @@ Returns:JSON object
 
   `POST '/futures/trade/${signal_id}'`
 - place futures trade on logged in users binance account
-- Request Arguements: `signal_id`- integer, id of signal to trade and JSON object
+- Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
-{
-    "tx_hash":"0x09jsmns...",//tx hash of payment made to contract
-}
+{ }
 ```
 - Returns:JSON object
 ```json
@@ -525,7 +559,7 @@ Returns:JSON object
 ---
 <br>
 
-  `GET '/signal/${signal_id}?tx_hash=${tx_hash}'`
+  `GET or POST '/signal/${signal_id}?tx_hash=${tx_hash}'`
 - get complete details of a signal, requires logged in
 - Request Arguements: query parameter `signal_id`- integer,`tx_hash` - string; id of signal to get;tx hash of payment made to contract
 
