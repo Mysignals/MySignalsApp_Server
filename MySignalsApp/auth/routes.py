@@ -1,18 +1,22 @@
 from flask import jsonify, request, Blueprint, session, render_template, current_app
 from cryptography.fernet import Fernet
 from MySignalsApp.models.users import User
+from MySignalsApp.models.notifications import Notification
+from datetime import datetime
 from pydantic import ValidationError
 from MySignalsApp import bcrypt
 from MySignalsApp.schemas import (
     RegisterSchema,
     StringUUIDQuerySchema,
     LoginSchema,
+    PageQuerySchema,
     ValidEmailSchema,
     ResetPasswordSchema,
     UpdateKeysSchema,
 )
 from MySignalsApp.utils import (
     query_one_filtered,
+    query_paginate_filtered,
     verify_reset_token,
     send_email,
 )
@@ -360,6 +364,10 @@ def update_keys():
             "utf-8"
         )
         user.update()
+        notify = Notification(
+            user.id, "You're Api Credentials Was Successfully Updated"
+        )
+        notify.insert()
         return jsonify(
             {
                 "message": "success",
@@ -382,3 +390,83 @@ def update_keys():
             ),
             500,
         )
+
+
+@auth.route("/notifications")
+def get_notifications():
+    user = session.get("user")
+    if not user:
+        return (
+            jsonify(
+                {
+                    "error": "Unauthorized",
+                    "message": "You are not logged in",
+                    "status": False,
+                }
+            ),
+            401,
+        )
+    page = PageQuerySchema(page=request.args.get("page", 1))
+    user = query_one_filtered(User, id=user.get("id"))
+    if not user:
+        return (
+            jsonify(
+                {
+                    "error": "Resource not found",
+                    "message": "User does not exist",
+                    "status": False,
+                }
+            ),
+            404,
+        )
+    user.last_notification_read_time = datetime.utcnow()
+    user.update()
+
+    notifications = query_paginate_filtered(Notification, page.page, user_id=user.id)
+
+    return jsonify(
+        {
+            "message": "success",
+            "status": True,
+            "pages": notifications.pages,
+            "total": notifications.total,
+            "notifications": [
+                notification.format() for notification in notifications.items
+            ],
+        }
+    )
+
+
+@auth.route("/notifications/count")
+def get_unread_notifications_count():
+    user = session.get("user")
+    if not user:
+        return (
+            jsonify(
+                {
+                    "error": "Unauthorized",
+                    "message": "You are not logged in",
+                    "status": False,
+                }
+            ),
+            401,
+        )
+    user = query_one_filtered(User, id=user.get("id"))
+    if not user:
+        return (
+            jsonify(
+                {
+                    "error": "Resource not found",
+                    "message": "User does not exist",
+                    "status": False,
+                }
+            ),
+            404,
+        )
+    return jsonify(
+        {
+            "message": "success",
+            "status": True,
+            "unread_notifications": user.get_unread_notifications_count(),
+        }
+    )

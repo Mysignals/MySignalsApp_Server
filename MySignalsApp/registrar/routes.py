@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from MySignalsApp.schemas import ValidEmailSchema, PageQuerySchema
 from MySignalsApp.models.users import User, Roles
+from MySignalsApp.models.notifications import Notification
 from MySignalsApp.utils import (
     query_one_filtered,
     query_paginate_filtered,
@@ -59,6 +60,15 @@ def add_provider():
 
         user.roles = Roles.PROVIDER
         user.update()
+        notify_provider = Notification(
+            user.id,
+            "Congratulations! you've been granted Signal Provider Authorization",
+        )
+        notify_registrar = Notification(
+            registrar_id, f"You made {user.email} a Signal Provider"
+        )
+        notify_provider.insert()
+        notify_registrar.insert()
         return jsonify(
             {"message": "success", "provider": provider_email.email, "status": True}
         )
@@ -187,6 +197,14 @@ def drop_role():
 
         user.roles = Roles.USER
         user.update()
+        notify_provider = Notification(
+            user.id, "Your Special Authorizations Have Been Revoked!"
+        )
+        notify_registrar = Notification(
+            registrar_id, f"{user.email} Authorizations have been revoked"
+        )
+        notify_provider.insert()
+        notify_registrar.insert()
         return jsonify(
             {"message": "success", "registrar": user_email.email, "status": True}
         )
