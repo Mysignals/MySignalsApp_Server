@@ -2,6 +2,7 @@ from MySignalsApp.models.users import User
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
+from MySignalsApp.models.notifications import Notification
 from flask import jsonify, Blueprint, request, session, current_app
 from MySignalsApp.schemas import (
     ValidTxSchema,
@@ -141,6 +142,11 @@ def place_spot_trade(signal_id):
         trade = spot_client.new_order(**params)
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_params)
+        notify = Notification(
+            user.id,
+            f"Spot Signal {signal_data.id} order has been placed on your Binance Account",
+        )
+        notify.insert()
 
         return (
             jsonify(
@@ -234,6 +240,11 @@ def place_futures_trade(signal_id):
         sleep(1)
         futures_client.new_order(**stop_params)
         futures_client.new_order(**tp_params)
+        notify = Notification(
+            user.id,
+            f"Futures Signal {signal_data.id} order has been placed on your Binance Account",
+        )
+        notify.insert()
 
         return (
             jsonify(
@@ -296,7 +307,21 @@ def get_signal(signal_id):
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
         ):
             placed_signal = PlacedSignals(user_id, signal_data.id, signal_data.tx_hash)
+            notify_user = Notification(
+                user.id, f"You Successfully purchased signal {signal_data.id}"
+            )
+            notify_provider = Notification(
+                signal.user.id, f"Your Signal {signal_data.id} was purchased"
+            )
             placed_signal.insert()
+            if user.referrer:
+                notify_referrer = Notification(
+                    user.referrer.id,
+                    f"You Earned referral Bonus from {user.user_name} on signal {signal_data.id}",
+                )
+                notify_referrer.insert()
+            notify_provider.insert()
+            notify_user.insert()
 
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),

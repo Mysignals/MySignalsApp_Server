@@ -131,7 +131,8 @@ def is_active(table, user_id):
 
 # rating helpers
 
-@cache.memoize(timeout=43200) # 43200 seconds = 0.5 days
+
+@cache.memoize(timeout=43200)  # 43200 seconds = 0.5 days
 def calculate_rating(provider_id):
     ratings = (
         db.session.execute(

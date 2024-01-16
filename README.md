@@ -216,10 +216,48 @@ Returns:
     "referrals": 0,
     "referrers_wallet": null,//wallet address of referrer
     "wallet": "0xodn",//wallet address of user
+    "unread_notifications":1,
     "user_name": "user_name",
     "is_active": false,
     "roles": "['User','Rgistrar']",
     "created_on": "thu 30 june 2021 12:24:07"
+}
+```
+---
+<br>
+
+  `GET '/auth/notifications'` or `GET '/auth/notifications?page=${page}'`
+- gets all notifications of a user
+- Requires logged in
+- Request Arguements:query parameter `page`- integer defaults to `1` if not provided
+- Returns: JSON object paginated
+```json
+{
+  "message": "success",
+  "notifications": [
+    {
+      "date_created": "Mon, 15 Jan 2024 17:46:38 GMT",
+      "id": 1,
+      "message": "test notification",
+      "user": "bingoprovider"
+    }
+  ],
+  "pages": 1,
+  "status": true,
+  "total": 1
+}
+```
+---
+<br>
+
+  `GET '/auth/notifications/count'`
+- gets total number of unread notifications of logged in user
+- Returns: JSON object
+```json
+{
+  "message": "success",
+  "status": true,
+  "unread_notifications": 1
 }
 ```
 ---

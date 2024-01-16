@@ -1,12 +1,14 @@
 from flask_admin import BaseView, expose
 from MySignalsApp import db, admin, bcrypt
 from MySignalsApp.models.base import BaseModel
+from MySignalsApp.models.notifications import Notification
 from flask_admin.contrib.sqla import ModelView
 from wtforms import EmailField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email
 from flask import session, redirect, flash
 from MySignalsApp.utils import query_one_filtered
 from flask_wtf import FlaskForm
+from datetime import datetime
 from random import choices
 from uuid import uuid4
 import enum
@@ -33,6 +35,7 @@ class User(BaseModel):
     wallet = db.Column(db.String(43), nullable=True)
     is_active = db.Column(db.Boolean(), nullable=False, default=False)
     roles = db.Column(db.Enum(Roles), nullable=False, default=Roles.USER)
+    last_notification_read_time = db.Column(db.DateTime(), nullable=True)
     referral_code = db.Column(
         db.String(8), unique=True, nullable=True
     )  # TODO:make non nullable
@@ -48,6 +51,8 @@ class User(BaseModel):
     tokens = db.Relationship(
         "UserTokens", backref="user", lazy=True, cascade="all, delete-orphan"
     )
+
+    notifications = db.Relationship("Notification", backref="user", lazy=True)
 
     def __init__(
         self,
@@ -78,6 +83,17 @@ class User(BaseModel):
             uuid = "".join(choices(uuid4().hex, k=8))
         self.referral_code = uuid
 
+    def get_unread_notifications_count(self):
+        last_read_time = self.last_notification_read_time or datetime(1900, 1, 1)
+        query = db.select(Notification).where(
+            Notification.user_id == self.id,
+            Notification.date_created > last_read_time,
+        )
+
+        return db.session.scalar(
+            db.select(db.func.count()).select_from(query.subquery())
+        )
+
     def format(self):
         return {
             "id": self.id,
@@ -85,6 +101,7 @@ class User(BaseModel):
             "user_name": self.user_name,
             "roles": self.roles,
             "is_active": self.is_active,
+            "unread_notifications": self.get_unread_notifications_count(),
             "referral_code": self.referral_code,
             "referrals": self.referrals.filter_by(is_active=True).count(),
             "referrers_wallet": self.referrer.wallet if self.referrer else None,

@@ -10,6 +10,7 @@ from MySignalsApp.web3_helpers import prepare_futures_trade, prepare_spot_trade
 from MySignalsApp.models.users import User
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
+from MySignalsApp.models.notifications import Notification
 from binance.um_futures import UMFutures
 from binance.error import ClientError
 from binance.spot import Spot
@@ -149,7 +150,10 @@ def change_wallet():
     try:
         user.wallet = data.wallet
         user.update()
-
+        notify = Notification(
+            user.id, f"Your Wallet Address was Successfully Changed to {user.wallet}"
+        )
+        notify.insert()
         return jsonify({"message": "Wallet changed", "status": True}), 200
     except Exception as e:
         current_app.log_exception(exc_info=e)
@@ -183,7 +187,6 @@ def get_time():
 def new_spot_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
-
 
     if not user.wallet:
         return (
@@ -241,7 +244,6 @@ def new_spot_trade():
 def new_futures_trade():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
-
 
     if not user.wallet:
         return (
