@@ -108,7 +108,7 @@ def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
     try:
-        futures_client = UMFutures(base_url="https://testnet.binancefuture.com")
+        futures_client = UMFutures()
         usdt_symbols = futures_client.exchange_info()["symbols"]
         if not usdt_symbols:
             return jsonify({"message": "success", "pairs": [], "status": True}), 200

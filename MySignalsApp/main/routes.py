@@ -100,8 +100,7 @@ def place_spot_trade(signal_id):
 
     spot_client = Spot(
         api_key=user_api_key,
-        api_secret=user_api_secret,
-        base_url="https://testnet.binance.vision",
+        api_secret=user_api_secret
     )
     signal = ""
     trade_uuid = get_uuid()
@@ -195,8 +194,7 @@ def place_futures_trade(signal_id):
 
     futures_client = UMFutures(
         key=user_api_key,
-        secret=user_api_secret,
-        base_url="https://testnet.binancefuture.com",
+        secret=user_api_secret
     )
     signal = ""
     trade_uuid = get_uuid()
