@@ -53,6 +53,7 @@ def get_active_signals():
                     "signal": {
                         "symbol": signal.signal.get("symbol"),
                         "side": signal.signal.get("side"),
+                        "quantity":signal.signal.get("quantity")
                     },
                     "provider_rating": calculate_rating(signal.provider),
                 }
