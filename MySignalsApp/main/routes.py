@@ -3,7 +3,7 @@ from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.notifications import Notification
-from flask import jsonify, Blueprint, request, session, current_app
+from flask import jsonify, Blueprint, request, session, current_app,send_file
 from MySignalsApp.schemas import (
     ValidTxSchema,
     PageQuerySchema,
@@ -424,3 +424,7 @@ def get_user_placed_signals():
         ),
         200,
     )
+
+@main.route("/apply/provider")
+def apply_provider():
+    return send_file("templates/My Signals App Signal Provider Application Procedure.pdf",as_attachment=True)
