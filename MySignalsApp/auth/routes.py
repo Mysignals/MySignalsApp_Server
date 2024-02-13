@@ -365,7 +365,7 @@ def update_keys():
         )
         user.update()
         notify = Notification(
-            user.id, "You're Api Credentials Was Successfully Updated"
+            user.id, "Your Api Credentials Was Successfully Updated"
         )
         notify.insert()
         return jsonify(
