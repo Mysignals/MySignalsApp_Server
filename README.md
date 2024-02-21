@@ -719,6 +719,28 @@ Returns:JSON object
 ---
 <br>
 
+---
+<br>
+
+  `POST '/apply/provider'`
+- submit request to become a signal provider
+- Request Arguements: JSON object:
+```json
+{
+  "wallet":"0x40 characters more",
+  "experience":"",//providers experience(300 chars max 10 chars min)
+  "socials_and_additional":"" //social links and other relevant info(500 chars max 10 chars min)
+}
+```
+- Returns:JSON object
+```json
+{
+  "message": "success",
+  "status": true
+}
+```
+---
+<br>
 #### **REGISTRAR ENPOINTS**
 >ENDPOINTS only accessible to logged in user with Registrar role. This is The Admin
 

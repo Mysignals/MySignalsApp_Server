@@ -1,6 +1,7 @@
 from MySignalsApp.models.users import User
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
+from MySignalsApp.models.provider_application import ProviderApplication
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.notifications import Notification
 from flask import jsonify, Blueprint, request, session, current_app,send_file
@@ -9,6 +10,7 @@ from MySignalsApp.schemas import (
     PageQuerySchema,
     IntQuerySchema,
     RatingSchema,
+    ProviderApplicationSchema
 )
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
@@ -425,6 +427,21 @@ def get_user_placed_signals():
         200,
     )
 
-@main.route("/apply/provider")
+@main.route("/apply/provider",methods=["POST"])
 def apply_provider():
-    return send_file("templates/My Signals App Signal Provider Application Procedure.pdf",as_attachment=True)
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+
+    data=ProviderApplicationSchema(**request.get_json())
+    if(query_one_filtered(ProviderApplication, user_id=user_id)): 
+        raise UtilError("Forbidden", 403, "You have already applied in the past")
+
+    application=ProviderApplication(user_id, data.wallet, data.experience, data.socials_and_additional)
+    application.insert()
+    return jsonify({
+        "message":"success", 
+        "status":True
+
+    }), 200
+
+    
