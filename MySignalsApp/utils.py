@@ -88,7 +88,9 @@ def send_async_mail(app, msg):
 def send_email(user, url_func):
     token = get_reset_token(user)
     msg = Message(
-        "Secret Link Request", sender="MySignals-App <support@mysignals.app>", recipients=[user.email]
+        "Secret Link Request",
+        sender="MySignals-App <support@mysignals.app>",
+        recipients=[user.email],
     )
     msg.html = render_template(
         "mail_template.html",

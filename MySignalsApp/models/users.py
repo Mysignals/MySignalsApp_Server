@@ -46,7 +46,9 @@ class User(BaseModel):
     referrer = db.Relationship(
         "User", back_populates="referrals", lazy=True, remote_side=[referral_code]
     )
-    provider_application=db.Relationship("ProviderApplication",back_populates="user",lazy="dynamic")
+    provider_application = db.Relationship(
+        "ProviderApplication", back_populates="user", lazy="dynamic"
+    )
     signals = db.Relationship("Signal", backref="user", lazy=True)
     placed_signals = db.Relationship("PlacedSignals", backref="user", lazy=True)
     tokens = db.Relationship(

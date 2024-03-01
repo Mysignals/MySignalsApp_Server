@@ -364,9 +364,7 @@ def update_keys():
             "utf-8"
         )
         user.update()
-        notify = Notification(
-            user.id, "Your Api Credentials Was Successfully Updated"
-        )
+        notify = Notification(user.id, "Your Api Credentials Was Successfully Updated")
         notify.insert()
         return jsonify(
             {

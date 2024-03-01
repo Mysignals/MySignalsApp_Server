@@ -131,6 +131,7 @@ class SpotSchema(BaseModel):
 class FuturesSchema(SpotSchema):
     leverage: int
 
+
 class ProviderApplicationSchema(WalletSchema):
-    experience:constr(min_length=10,max_length=300, to_lower=True)
-    socials_and_additional:constr(min_length=10,max_length=500, to_lower=True)
+    experience: constr(min_length=10, max_length=300, to_lower=True)
+    socials_and_additional: constr(min_length=10, max_length=500, to_lower=True)

@@ -10,7 +10,7 @@ from MySignalsApp.schemas import (
     PageQuerySchema,
     IntQuerySchema,
     RatingSchema,
-    ProviderApplicationSchema
+    ProviderApplicationSchema,
 )
 from pydantic import ValidationError
 from binance.um_futures import UMFutures
@@ -56,7 +56,7 @@ def get_active_signals():
                     "signal": {
                         "symbol": signal.signal.get("symbol"),
                         "side": signal.signal.get("side"),
-                        "quantity":signal.signal.get("quantity")
+                        "quantity": signal.signal.get("quantity"),
                     },
                     "provider_rating": calculate_rating(signal.provider),
                 }
@@ -102,10 +102,7 @@ def place_spot_trade(signal_id):
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
-    spot_client = Spot(
-        api_key=user_api_key,
-        api_secret=user_api_secret
-    )
+    spot_client = Spot(api_key=user_api_key, api_secret=user_api_secret)
     signal = ""
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
@@ -196,10 +193,7 @@ def place_futures_trade(signal_id):
     user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
-    futures_client = UMFutures(
-        key=user_api_key,
-        secret=user_api_secret
-    )
+    futures_client = UMFutures(key=user_api_key, secret=user_api_secret)
     signal = ""
     trade_uuid = get_uuid()
     signal_data = IntQuerySchema(id=signal_id)
@@ -428,24 +422,22 @@ def get_user_placed_signals():
         200,
     )
 
-@main.route("/apply/provider",methods=["POST"])
+
+@main.route("/apply/provider", methods=["POST"])
 def apply_provider():
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
     try:
-        data=ProviderApplicationSchema()
+        data = ProviderApplicationSchema(**request.get_json())
     except ValidationError as e:
-        msg=[f"{err['loc'][0]}: {err['msg']}." for err in e.errors()]
-        msg="\n".join(msg)
-        raise UtilError("Bad Request",400,msg)
-    if(query_one_filtered(ProviderApplication, user_id=user_id)): 
+        msg = [f"{err['loc'][0]}: {err['msg']}." for err in e.errors()]
+        msg = "\n".join(msg)
+        raise UtilError("Bad Request", 400, msg)
+    if query_one_filtered(ProviderApplication, user_id=user_id):
         raise UtilError("Forbidden", 403, "You have already applied in the past")
 
-    application=ProviderApplication(user_id, data.wallet, data.experience, data.socials_and_additional)
+    application = ProviderApplication(
+        user_id, data.wallet, data.experience, data.socials_and_additional
+    )
     application.insert()
-    return jsonify({
-        "message":"success", 
-        "status":True
-    }), 200
-
-    
+    return jsonify({"message": "success", "status": True}), 200
