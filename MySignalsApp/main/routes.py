@@ -4,7 +4,7 @@ from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.provider_application import ProviderApplication
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.notifications import Notification
-from flask import jsonify, Blueprint, request, session, current_app,send_file
+from flask import jsonify, Blueprint, request, session, current_app
 from MySignalsApp.schemas import (
     ValidTxSchema,
     PageQuerySchema,
@@ -12,6 +12,7 @@ from MySignalsApp.schemas import (
     RatingSchema,
     ProviderApplicationSchema
 )
+from pydantic import ValidationError
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
 from binance.error import ClientError
@@ -431,8 +432,12 @@ def get_user_placed_signals():
 def apply_provider():
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-
-    data=ProviderApplicationSchema(**request.get_json())
+    try:
+        data=ProviderApplicationSchema()
+    except ValidationError as e:
+        msg=[f"{err['loc'][0]}: {err['msg']}." for err in e.errors()]
+        msg="\n".join(msg)
+        raise UtilError("Bad Request",400,msg)
     if(query_one_filtered(ProviderApplication, user_id=user_id)): 
         raise UtilError("Forbidden", 403, "You have already applied in the past")
 
@@ -441,7 +446,6 @@ def apply_provider():
     return jsonify({
         "message":"success", 
         "status":True
-
     }), 200
 
     
