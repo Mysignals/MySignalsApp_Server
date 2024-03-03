@@ -1,6 +1,7 @@
 from pydantic import BaseModel, constr, EmailStr, validator, EmailError
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from uuid import UUID
+from web3 import Web3
 
 
 class RegisterSchema(BaseModel):
@@ -23,9 +24,14 @@ class RegisterSchema(BaseModel):
 
     @validator("wallet")
     def valid_wallet_hex(cls, v):
-        if "0x" not in v[:2]:
+        # if "0x" not in v[:2]:
+        #     raise ValueError("Invalid wallet Address")
+        # return v
+        try:
+            addr = Web3.to_checksum_address(v)
+            return addr
+        except:
             raise ValueError("Invalid wallet Address")
-        return v
 
     @validator("confirm_password")
     def passwords_are_same(cls, v, values):
@@ -77,9 +83,11 @@ class WalletSchema(BaseModel):
 
     @validator("wallet")
     def valid_wallet(cls, v):
-        if "0x" not in v[:2]:
-            raise ValueError("Invalid Wallet Address")
-        return v
+        try:
+            addr = Web3.to_checksum_address(v)
+            return addr
+        except:
+            raise ValueError("Invalid wallet Address")
 
 
 class ValidEmailSchema(BaseModel):

@@ -1,13 +1,7 @@
-from flask_admin import BaseView, expose
-from MySignalsApp import db, admin, bcrypt
+from MySignalsApp import db
 from MySignalsApp.models.base import BaseModel
 from MySignalsApp.models.notifications import Notification
-from flask_admin.contrib.sqla import ModelView
-from wtforms import EmailField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email
-from flask import session, redirect, flash
 from MySignalsApp.utils import query_one_filtered
-from flask_wtf import FlaskForm
 from datetime import datetime
 from random import choices
 from uuid import uuid4
@@ -112,80 +106,3 @@ class User(BaseModel):
             "has_api_keys": bool(self.api_key and self.api_secret),
             "date_created": self.date_created,
         }
-
-
-class AdminForm(FlaskForm):
-    email = EmailField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Login")
-
-
-class AdminLoginView(BaseView):
-    @expose("/", methods=["GET", "POST"])
-    def admin_form_login(self):
-        form = AdminForm()
-
-        if form.validate_on_submit():
-            email, password = form.email.data, form.password.data
-            if not email or not password:
-                flash("One or more missing fields", category="error")
-                return redirect("/admin/login", 302)
-            user = query_one_filtered(User, email=email)
-            if not user or not bcrypt.check_password_hash(user.password, password):
-                flash("Incorrect email or password", category="error")
-                return redirect("/admin/login", 302)
-
-            session["user"] = {"id": user.id, "permission": user.roles.value}
-            return redirect("/admin", 302)
-        return self.render("admin/login.html", form=form)
-
-
-class AdminLogoutView(BaseView):
-    @expose("/")
-    def logout_admin(self):
-        session.pop("user", None)
-        return redirect("/admin/login", 302)
-
-
-class UserModelView(ModelView):
-    def is_accessible(self):
-        user = session.get("user") if session else None
-        return "Registrar" in user.get("permission") if user else False
-
-    # def _handle_view(self, name, **kwargs):
-    #     print(self.is_accessible())
-    #     if not self.is_accessible():
-    #         return redirect("admin/login")
-    #     else:
-    #         return redirect("admin/user")
-
-    def inaccessible_callback(self, name, **kwargs):
-        flash("You are not Authorized", category="error")
-        return redirect("/admin/login", 302)
-
-    can_create = False
-    can_delete = False
-    column_searchable_list = ["user_name", "email"]
-    column_filters = ["is_active", "roles"]
-    column_list = (
-        "id",
-        "user_name",
-        "email",
-        "wallet",
-        "is_active",
-        "roles",
-        "date_created",
-    )
-    form_columns = (
-        "user_name",
-        "email",
-        "wallet",
-        "is_active",
-        "roles",
-        "date_created",
-    )
-
-
-admin.add_view(UserModelView(User, db.session))
-admin.add_view(AdminLoginView(endpoint="login", name="login"))
-admin.add_view(AdminLogoutView(endpoint="logout", name="logout"))

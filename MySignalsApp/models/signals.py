@@ -39,29 +39,3 @@ class Signal(BaseModel):
             "provider_wallet": self.user.wallet,
             "date_created": self.date_created,
         }
-
-
-class SignalModelView(ModelView):
-    def is_accessible(self):
-        user = session.get("user") if session else None
-        return "Registrar" in user.get("permission") if user else False
-
-    # def _handle_view(self, name, **kwargs):
-    #     print(self.is_accessible())
-    #     if not self.is_accessible():
-    #         return self.render("admin/login.html")
-    #     else:
-    #         return self.render("admin/index.html")
-
-    def inaccessible_callback(self, name, **kwargs):
-        flash("you are not authorized", category="error")
-        return redirect("/admin/login", 302)
-
-    can_create = False
-    column_searchable_list = ["provider"]
-    column_filters = ["is_spot", "status"]
-    column_list = ("id", "signal", "is_spot", "status", "user", "date_created")
-    form_columns = ("signal", "status", "provider", "date_created")
-
-
-admin.add_view(SignalModelView(Signal, db.session))

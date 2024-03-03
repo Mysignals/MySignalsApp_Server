@@ -82,6 +82,10 @@ def create_app(config_class=App_Config):
     app.register_blueprint(registrar)
     app.register_blueprint(error)
 
+    from MySignalsApp.model_views.admin_views import model_views
+
+    admin.add_views(*model_views)
+
     # Initialize rate limiter
     limiter.init_app(app)
     limiter.limit("25/second", override_defaults=True)(admin.index_view.blueprint)
