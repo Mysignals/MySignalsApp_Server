@@ -73,7 +73,7 @@ def verify_compensation_details(
 def prepare_spot_trade(signal: dict, trade_uuid: str):
     params = {
         "symbol": signal["symbol"],
-        "side": signal["side"],
+        "side": "BUY",
         "type": "LIMIT",
         "timeInForce": "GTC",
         "quantity": signal["quantity"],
@@ -84,7 +84,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str):
 
     stop_params = {
         "symbol": signal["symbol"],
-        "side": "SELL" if signal["side"] == "BUY" else "BUY",
+        "side": "SELL",
         "price": stops["tp"],
         "quantity": signal["quantity"],
         "stopPrice": stops["sl"],

@@ -5,7 +5,7 @@ from flask_admin.contrib.sqla import ModelView
 
 
 class ProviderApplication(BaseModel):
-    __tablename__ = "providerappliications"
+    __tablename__ = "providerapplications"
     id = db.Column(db.Integer(), primary_key=True, unique=True, nullable=False)
     user_id = db.Column(
         db.String(34), db.ForeignKey("users.id"), unique=True, nullable=False
@@ -33,34 +33,3 @@ class ProviderApplication(BaseModel):
             "socials_and_additional": self.socials_and_additional,
             "date_created": self.date_created,
         }
-
-
-class ProviderApplicationView(ModelView):
-    def is_accessible(self):
-        user = session.get("user") if session else None
-        return "Registrar" in user.get("permission") if user else False
-
-    def inaccessible_callback(self, name, **kwargs):
-        flash("You are not Authorized", category="error")
-        return redirect("/admin/login", 302)
-
-    column_list = [
-        "id",
-        "user.user_name",
-        "wallet",
-        "experience",
-        "socials_and_additional",
-        "date_created",
-    ]
-    form_columns = [
-        "user",
-        "wallet",
-        "experience",
-        "socials_and_additional",
-        "date_created",
-    ]
-    column_searchable_list = ["user_id", "user.user_name", "wallet"]
-    column_filters = ["date_created"]
-
-
-admin.add_view(ProviderApplicationView(ProviderApplication, db.session))

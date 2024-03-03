@@ -1,7 +1,7 @@
 from MySignalsApp.models.users import User
+from MySignalsApp.models.provider_application import ProviderApplication
 from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
-from MySignalsApp.models.provider_application import ProviderApplication
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.notifications import Notification
 from flask import jsonify, Blueprint, request, session, current_app
