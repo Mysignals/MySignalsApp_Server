@@ -80,7 +80,8 @@ def register_user():
             error = err["msg"]
             if "regex" in error:
                 error = "Invalid input format,a-z 0-9 _ only"
-            msg.append({"field": field, "error": error})
+            msg.append(f"{field}: {error}.")
+        msg = "\n".join(msg)
         return (
             jsonify({"error": "Bad Request", "message": msg, "status": False}),
             400,

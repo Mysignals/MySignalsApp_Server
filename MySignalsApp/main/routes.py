@@ -427,12 +427,7 @@ def get_user_placed_signals():
 def apply_provider():
     user_id = has_permission(session, "User")
     user = is_active(User, user_id)
-    try:
-        data = ProviderApplicationSchema(**request.get_json())
-    except ValidationError as e:
-        msg = [f"{err['loc'][0]}: {err['msg']}." for err in e.errors()]
-        msg = "\n".join(msg)
-        raise UtilError("Bad Request", 400, msg)
+    data = ProviderApplicationSchema(**request.get_json())
     if query_one_filtered(ProviderApplication, user_id=user_id):
         raise UtilError("Forbidden", 403, "You have already applied in the past")
 

@@ -129,7 +129,6 @@ class SpotSchema(BaseModel):
     tp: float
 
 
-
 class FuturesSchema(SpotSchema):
     side: constr(max_length=4)
     leverage: int
@@ -139,6 +138,7 @@ class FuturesSchema(SpotSchema):
         if v not in ["BUY", "SELL"]:
             raise ValueError
         return v
+
 
 class ProviderApplicationSchema(WalletSchema):
     experience: constr(min_length=10, max_length=300, to_lower=True)
