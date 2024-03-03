@@ -123,22 +123,22 @@ class ValidTxSchema(IntQuerySchema):
 
 class SpotSchema(BaseModel):
     symbol: constr(max_length=12)
-    side: constr(max_length=4)
     quantity: float
     price: float
     sl: float
     tp: float
+
+
+
+class FuturesSchema(SpotSchema):
+    side: constr(max_length=4)
+    leverage: int
 
     @validator("side")
     def is_buy_or_sell(cls, v):
         if v not in ["BUY", "SELL"]:
             raise ValueError
         return v
-
-
-class FuturesSchema(SpotSchema):
-    leverage: int
-
 
 class ProviderApplicationSchema(WalletSchema):
     experience: constr(min_length=10, max_length=300, to_lower=True)

@@ -205,7 +205,7 @@ def new_spot_trade():
 
     signal_data = dict(
         symbol=data.symbol,
-        side=data.side,
+        side="BUY",
         quantity=data.quantity,
         price=data.price,
         stops=dict(sl=data.sl, tp=data.tp),
