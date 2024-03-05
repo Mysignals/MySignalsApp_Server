@@ -132,12 +132,10 @@ class SpotSchema(BaseModel):
     tp3: float | None
 
     @validator("tp3")
-    def tp2_exists(cls, v, values):
-        if "tp2" in values and v != values["tp2"] and values["tp2"] != None:
-            print(v)
-            return v
-        print(values)
-        raise ValueError("Ensure tp2 exists and not equals tp3")
+    def validate_tp3(cls, v, values):
+        if v is not None and (values.get("tp2") is None or v == values.get("tp2")):
+            raise ValueError("tp3 requires tp2 to be set and different from tp3")
+        return v
 
 
 class FuturesSchema(SpotSchema):
