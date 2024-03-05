@@ -70,7 +70,7 @@ def verify_compensation_details(
     return True
 
 
-def prepare_spot_trade(signal: dict, trade_uuid: str):
+def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float):
     params = {
         "symbol": signal["symbol"],
         "side": "BUY",
@@ -85,7 +85,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str):
     stop_params = {
         "symbol": signal["symbol"],
         "side": "SELL",
-        "price": stops["tp"],
+        "price": tp,
         "quantity": signal["quantity"],
         "stopPrice": stops["sl"],
         "stopLimitPrice": stops["sl"],
@@ -95,7 +95,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str):
     return (params, stops, stop_params)
 
 
-def prepare_futures_trade(signal: dict, trade_uuid: str):
+def prepare_futures_trade(signal: dict, trade_uuid: str, tp: float):
     params = {
         "symbol": signal["symbol"],
         "side": signal["side"],
@@ -118,7 +118,7 @@ def prepare_futures_trade(signal: dict, trade_uuid: str):
     tp_params = {
         "symbol": signal["symbol"],
         "side": "SELL" if signal["side"] == "BUY" else "BUY",
-        "stopPrice": stops["tp"],
+        "stopPrice": tp,
         "quantity": signal["quantity"],
         "closePosition": "true",
         "type": "TAKE_PROFIT_MARKET",

@@ -123,10 +123,21 @@ class ValidTxSchema(IntQuerySchema):
 
 class SpotSchema(BaseModel):
     symbol: constr(max_length=12)
+    short_text: constr(min_length=0, max_length=100) | None
     quantity: float
     price: float
     sl: float
-    tp: float
+    tp1: float
+    tp2: float | None
+    tp3: float | None
+
+    @validator("tp3")
+    def tp2_exists(cls, v, values):
+        if "tp2" in values and v != values["tp2"] and values["tp2"] != None:
+            print(v)
+            return v
+        print(values)
+        raise ValueError("Ensure tp2 exists and not equals tp3")
 
 
 class FuturesSchema(SpotSchema):
@@ -138,6 +149,10 @@ class FuturesSchema(SpotSchema):
         if v not in ["BUY", "SELL"]:
             raise ValueError
         return v
+
+
+class TpSchema(IntQuerySchema):
+    tp: float
 
 
 class ProviderApplicationSchema(WalletSchema):

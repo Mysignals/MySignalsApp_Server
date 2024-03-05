@@ -208,7 +208,7 @@ def new_spot_trade():
         side="BUY",
         quantity=data.quantity,
         price=data.price,
-        stops=dict(sl=data.sl, tp=data.tp),
+        stops=dict(sl=data.sl, tp1=data.tp1, tp2=data.tp2, tp3=data.tp3),
     )
 
     spot_client = Spot(
@@ -216,11 +216,11 @@ def new_spot_trade():
         api_secret=os.getenv("SSEC"),
         base_url="https://testnet.binance.vision",
     )
-    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid())
+    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid(), data.tp1)
     spot_client.new_order_test(**params)
     spot_client.new_oco_order(**stop_params)
     try:
-        signal = Signal(signal_data, True, user_id, True)
+        signal = Signal(signal_data, True, user_id, True, data.short_text)
         signal.insert()
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),
@@ -266,7 +266,7 @@ def new_futures_trade():
         quantity=data.quantity,
         price=data.price,
         leverage=data.leverage,
-        stops=dict(sl=data.sl, tp=data.tp),
+        stops=dict(sl=data.sl, tp1=data.tp1, tp2=data.tp2, tp3=data.tp3),
     )
 
     futures_client = UMFutures(
@@ -274,12 +274,14 @@ def new_futures_trade():
         secret=os.getenv("FSEC"),
         base_url="https://testnet.binancefuture.com",
     )
-    params, _, stop_params, tp_params = prepare_futures_trade(signal_data, get_uuid())
+    params, _, stop_params, tp_params = prepare_futures_trade(
+        signal_data, get_uuid(), data.tp1
+    )
     futures_client.new_order_test(**params)
     futures_client.new_order_test(**stop_params)
     futures_client.new_order_test(**tp_params)
     try:
-        signal = Signal(signal_data, True, user_id, False)
+        signal = Signal(signal_data, True, user_id, False, data.short_text)
         signal.insert()
         return (
             jsonify({"message": "success", "signal": signal.format(), "status": True}),

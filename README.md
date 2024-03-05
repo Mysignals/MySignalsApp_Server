@@ -311,6 +311,7 @@ Returns: Json object
                     "tp":"380"
                 }
             },
+            "short_text":"short message from provider",
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
             "provider": "testprovider", // provider user name
@@ -329,6 +330,7 @@ Returns: Json object
                     "tp":"60"
                 }
             },
+            "short_text":"short message from provider",
             "status": false, //old or no longer valid
             "is_spot": false,// futures trade
             "provider": "testprovider", // provider user name
@@ -380,11 +382,14 @@ Returns: Json object
 ```json
 {
   "symbol":"BNBUSDT",
-  "side":"SELL",
+  "side":"BUY",
   "quantity":"0.5",//type:float
   "price":"336",//type:float
-  "tp":"325",//type:float
-  "sl":"340"//type:float
+  "tp1":"325",//type:float
+  "tp2":"",//float optional
+  "tp3":"",//float optional
+  "sl":"340",//type:float
+  "short_text":"sample short message from provider"
 }
 ```
 - Returns: JSON object
@@ -403,6 +408,7 @@ Returns: Json object
                     "tp":"325"
                 }
             },
+            "short_text":"short message from provider",
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
             "provider": "testprovider", // provider user name
@@ -424,8 +430,11 @@ Returns: Json object
   "quantity":"0.5",//type:float
   "price":"336",//type:float
   "leverage":"3",//type:integer
-  "tp":"325",//type:float
-  "sl":"340"//type:float
+  "tp1":"325",//type:float required
+  "tp2":"",//float optional
+  "tp3":"",//float optional
+  "sl":"340",//type:float
+  "short_text":"sample short message from provider"
 }
 ```
 - Returns: JSON object
@@ -445,6 +454,7 @@ Returns: Json object
                     "tp":"325"
                 }
             },
+            "short_text":"short message from provider",
             "status": true, //if signal is still valid
             "is_spot": false,// if is futures trade
             "provider": "testprovider", // provider user name
@@ -510,7 +520,9 @@ Returns:JSON object
 - place spot trade on logged in users binance account
 - Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
-{ }
+{ 
+  "tp":"0.876"//selected tp:float
+}
 ```
 - Returns:JSON object
 ```json
@@ -534,9 +546,11 @@ Returns:JSON object
 
   `POST '/futures/trade/${signal_id}'`
 - place futures trade on logged in users binance account
-- Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
+- Request Arguements: `signal_id`- integer, id of signal to trade and JSON body containig
 ```json
-{ }
+{ 
+  "tp":"0.876"//selected tp:float
+}
 ```
 - Returns:JSON object
 ```json
@@ -579,6 +593,7 @@ Returns:JSON object
                     "tp":"325"
                 }
             },
+            "short_text":"",//short message from provider
             "status": true, //is signal is still valid
             "is_spot": true,// if is spot trade
             "provider": "testprovider", // provider user name
@@ -624,8 +639,10 @@ Returns:JSON object
       "signal": {
           "symbol": "LTCUSDT",
           "side":"SELL",
+          "quantity":""
       },
       "is_spot": true,
+      "short_text":null,
       "provider":"proider username",
       "provider_wallet": "0x21gh...",
       "provider_rating":4.65,
@@ -636,9 +653,11 @@ Returns:JSON object
       "signal": {
           "symbol": "BTCUSDT",
           "side":"BUY",
+          "quantity":""
       },
       "is_spot": true,
       "provider":"proider username",
+      "short_text":null,
       "provider_wallet": "0x21gh...",
       "provider_rating":4.05,
       "date_created": "Sun 31 march 2020 13:42:00",
@@ -648,9 +667,11 @@ Returns:JSON object
       "signal": {
           "symbol": "ETHUSDT",
           "side":"SELL",
+          "quantity":""
       },
       "is_spot": false,
       "provider":"proider username",
+      "short_text":null,
       "provider_wallet": "0x21gh...",
       "provider_rating":3.35,
       "date_created": "Sun 31 march 2020 13:42:00",
@@ -678,6 +699,7 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:22 GMT",
       "id": 2,
       "is_spot": true,
+      "short_text":"", //short message from provider
       "provider": "testprovider", // provider user name
       "provider_wallet": "0x0...",//providers wallet address
       "signal": {
@@ -697,6 +719,7 @@ Returns:JSON object
       "date_created": "Mon, 27 Nov 2023 00:10:07 GMT",
       "id": 1,
       "is_spot": true,
+      "short_text":"",//short message from provider
       "provider": "testprovider", // provider user name
       "provider_wallet": "0x0...",//providers wallet address
       "signal": {
