@@ -10,9 +10,9 @@ from MySignalsApp.schemas import (
     PageQuerySchema,
     IntQuerySchema,
     RatingSchema,
+    TpSchema,
     ProviderApplicationSchema,
 )
-from pydantic import ValidationError
 from binance.um_futures import UMFutures
 from cryptography.fernet import Fernet
 from binance.error import ClientError
@@ -58,6 +58,7 @@ def get_active_signals():
                         "side": signal.signal.get("side"),
                         "quantity": signal.signal.get("quantity"),
                     },
+                    "short_text": None,
                     "provider_rating": calculate_rating(signal.provider),
                 }
                 for signal in signals
@@ -103,9 +104,9 @@ def place_spot_trade(signal_id):
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
     spot_client = Spot(api_key=user_api_key, api_secret=user_api_secret)
-    signal = ""
+
     trade_uuid = get_uuid()
-    signal_data = IntQuerySchema(id=signal_id)
+    signal_data = TpSchema(id=signal_id, tp=request.get_json().get("tp"))
     try:
         placed_signal = query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
@@ -137,8 +138,9 @@ def place_spot_trade(signal_id):
             )
 
         signal = signal.signal
-        params, stops, stop_params = prepare_spot_trade(signal, trade_uuid)
-        print(params, stops, stop_params)
+        params, stops, stop_params = prepare_spot_trade(
+            signal, trade_uuid, signal_data.tp
+        )
         trade = spot_client.new_order(**params)
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_params)
@@ -152,7 +154,7 @@ def place_spot_trade(signal_id):
             jsonify(
                 {
                     "message": "success",
-                    "signal": {**params, "sl": stops.get("sl"), "tp": stops.get("tp")},
+                    "signal": {**params, "sl": stops.get("sl"), "tp": signal_data.tp},
                     "status": True,
                 }
             ),
@@ -194,9 +196,8 @@ def place_futures_trade(signal_id):
     user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
 
     futures_client = UMFutures(key=user_api_key, secret=user_api_secret)
-    signal = ""
     trade_uuid = get_uuid()
-    signal_data = IntQuerySchema(id=signal_id)
+    signal_data = TpSchema(id=signal_id, tp=request.get_json().get("tp"))
     try:
         placed_signal = query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
@@ -228,7 +229,7 @@ def place_futures_trade(signal_id):
 
         signal = signal.signal
         params, stops, stop_params, tp_params = prepare_futures_trade(
-            signal, trade_uuid
+            signal, trade_uuid, signal_data.tp
         )
 
         lev = futures_client.change_leverage(signal["symbol"], signal["leverage"])
@@ -249,7 +250,7 @@ def place_futures_trade(signal_id):
                     "signal": {
                         **params,
                         "sl": stops.get("sl"),
-                        "tp": stops.get("tp"),
+                        "tp": signal_data.tp,
                         "leverage": signal["leverage"],
                     },
                     "status": True,
