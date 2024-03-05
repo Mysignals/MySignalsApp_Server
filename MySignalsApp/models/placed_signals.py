@@ -1,7 +1,5 @@
 from MySignalsApp.models.base import BaseModel
-from MySignalsApp import db, admin
-from flask import session, flash, redirect
-from flask_admin.contrib.sqla import ModelView
+from MySignalsApp import db
 
 
 class PlacedSignals(BaseModel):
