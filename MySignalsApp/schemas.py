@@ -150,7 +150,7 @@ class FuturesSchema(SpotSchema):
 
 
 class TpSchema(IntQuerySchema):
-    quoteQty:float
+    quoteQty: float
     tp: float
 
 

@@ -70,13 +70,13 @@ def verify_compensation_details(
     return True
 
 
-def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float,quoteQty:float):
+def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float):
     params = {
         "symbol": signal["symbol"],
         "side": "BUY",
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": round(quoteQty/signal["price"],7),
+        "quantity": round(quoteQty / signal["price"], 7),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -86,7 +86,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float,quoteQty:float):
         "symbol": signal["symbol"],
         "side": "SELL",
         "price": tp,
-        "quantity": round(quoteQty/signal["price"],7),
+        "quantity": round(quoteQty / signal["price"], 7),
         "stopPrice": stops["sl"],
         "stopLimitPrice": stops["sl"],
         "stopLimitTimeInForce": "GTC",
@@ -95,13 +95,15 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float,quoteQty:float):
     return (params, stops, stop_params)
 
 
-def prepare_futures_trade(signal: dict, trade_uuid: str, tp: float,quoteQty:float,lev:int):
+def prepare_futures_trade(
+    signal: dict, trade_uuid: str, tp: float, quoteQty: float, lev: int
+):
     params = {
         "symbol": signal["symbol"],
         "side": signal["side"],
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": round(quoteQty*lev/signal["price"],7),
+        "quantity": round(quoteQty * lev / signal["price"], 7),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -113,13 +115,13 @@ def prepare_futures_trade(signal: dict, trade_uuid: str, tp: float,quoteQty:floa
         "closePosition": "true",
         "type": "STOP_MARKET",
         "stopPrice": stops["sl"],
-        "quantity": round(quoteQty*lev/signal["price"],7),
+        "quantity": round(quoteQty * lev / signal["price"], 7),
     }
     tp_params = {
         "symbol": signal["symbol"],
         "side": "SELL" if signal["side"] == "BUY" else "BUY",
         "stopPrice": tp,
-        "quantity": round(quoteQty*lev/signal["price"],7),
+        "quantity": round(quoteQty * lev / signal["price"], 7),
         "closePosition": "true",
         "type": "TAKE_PROFIT_MARKET",
     }
