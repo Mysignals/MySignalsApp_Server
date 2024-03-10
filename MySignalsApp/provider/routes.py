@@ -216,7 +216,7 @@ def new_spot_trade():
         api_secret=os.getenv("SSEC"),
         base_url="https://testnet.binance.vision",
     )
-    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid(), data.tp1)
+    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid(), data.tp1,data.quantity)
     spot_client.new_order_test(**params)
     spot_client.new_oco_order(**stop_params)
     try:
@@ -275,7 +275,7 @@ def new_futures_trade():
         base_url="https://testnet.binancefuture.com",
     )
     params, _, stop_params, tp_params = prepare_futures_trade(
-        signal_data, get_uuid(), data.tp1
+        signal_data, get_uuid(), data.tp1,data.quantity,data.leverage
     )
     futures_client.new_order_test(**params)
     futures_client.new_order_test(**stop_params)
