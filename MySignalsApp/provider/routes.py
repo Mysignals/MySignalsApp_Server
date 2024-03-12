@@ -81,7 +81,7 @@ def get_spot_pairs():
         pairs = [
             symbol["symbol"]
             for symbol in usdt_symbols
-            if symbol["symbol"][-4:] == "USDT"
+            if symbol["quoteAsset"] == "USDT"
         ]
 
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
@@ -116,7 +116,7 @@ def get_futures_pairs():
         pairs = [
             symbol["symbol"]
             for symbol in usdt_symbols
-            if symbol["symbol"][-4:] == "USDT" and symbol["contractType"] == "PERPETUAL"
+            if symbol["quoteAsset"] == "USDT" and symbol["contractType"] == "PERPETUAL"
         ]
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:

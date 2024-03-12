@@ -1,6 +1,6 @@
 from web3 import Web3
 from MySignalsApp.errors.handlers import UtilError
-from MySignalsApp import contract_address, abi
+from MySignalsApp import contract_address, abi, cache
 from web3.datastructures import AttributeDict
 from web3.types import _Hash32, TxReceipt
 import os
@@ -70,13 +70,25 @@ def verify_compensation_details(
     return True
 
 
+def get_pair_precision(pair: str):
+    precision = str(cache.get(f"prec_{pair}"))
+    strpd_precision = (
+        precision.rstrip("0").rstrip(".") if "." in precision else precision
+    )
+    precision = strpd_precision[::-1].find(".")
+
+    return None if precision == -1 else precision
+
+
 def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float):
     params = {
         "symbol": signal["symbol"],
         "side": "BUY",
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": round(quoteQty / signal["price"], 7),
+        "quantity": round(
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"])
+        ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -86,7 +98,9 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float
         "symbol": signal["symbol"],
         "side": "SELL",
         "price": tp,
-        "quantity": round(quoteQty / signal["price"], 7),
+        "quantity": round(
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"])
+        ),
         "stopPrice": stops["sl"],
         "stopLimitPrice": stops["sl"],
         "stopLimitTimeInForce": "GTC",
@@ -103,7 +117,9 @@ def prepare_futures_trade(
         "side": signal["side"],
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": round(quoteQty * lev / signal["price"], 7),
+        "quantity": round(
+            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+        ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -115,13 +131,17 @@ def prepare_futures_trade(
         "closePosition": "true",
         "type": "STOP_MARKET",
         "stopPrice": stops["sl"],
-        "quantity": round(quoteQty * lev / signal["price"], 7),
+        "quantity": round(
+            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+        ),
     }
     tp_params = {
         "symbol": signal["symbol"],
         "side": "SELL" if signal["side"] == "BUY" else "BUY",
         "stopPrice": tp,
-        "quantity": round(quoteQty * lev / signal["price"], 7),
+        "quantity": round(
+            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+        ),
         "closePosition": "true",
         "type": "TAKE_PROFIT_MARKET",
     }

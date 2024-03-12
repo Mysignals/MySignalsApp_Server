@@ -1,5 +1,6 @@
 from flask_limiter.util import get_remote_address
 from MySignalsApp.config import App_Config
+from binance.spot import Spot
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_session import Session
@@ -95,6 +96,8 @@ def create_app(config_class=App_Config):
     # with app.app_context():
     #     db.create_all()
 
+    set_precision(get_exchange_info())
+
     return app
 
 
@@ -102,6 +105,31 @@ def get_contract_details():
     with open("MySignalsApp/contract_details.json") as f:
         data = json.load(f)
     return data["address"], data["abi"]
+
+
+def set_precision(exchange_info):
+    for info in exchange_info:
+        cache.set(f'prec_{info["symbol"]}', info["minQty"])
+
+
+@cache.memoize(timeout=2629746)  # 1 month
+def get_exchange_info():
+    spot_client = Spot()
+
+    spt_info = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
+
+    return [
+        {
+            "symbol": symbol["symbol"],
+            "minQty": [
+                filter_class["minQty"]
+                for filter_class in symbol["filters"]
+                if filter_class["filterType"] == "LOT_SIZE"
+            ][0],
+        }
+        for symbol in spt_info
+        if symbol["quoteAsset"] == "USDT"
+    ]
 
 
 contract_address, abi = get_contract_details()
