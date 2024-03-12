@@ -4,7 +4,7 @@ image: gitpod/workspace-postgres
 
 tasks:
   - init: 
-      python -m venv venv
+      python3.10 -m venv venv
     command: |
       source venv/bin/activate
       pip install --upgrade pip
@@ -13,7 +13,7 @@ tasks:
 
       
     env:
-      SQLALCHEMY_DATABASE_URI: postgresql://gitpod@localhost/sigt
+      SQLALCHEMY_DATABASE_URI: postgresql://gitpod@localhost/sigs
 
 
 ports:

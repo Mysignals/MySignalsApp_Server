@@ -521,7 +521,8 @@ Returns:JSON object
 - Request Arguements: `signal_id`- integer, id of signal to trade and empty JSON body
 ```json
 { 
-  "tp":"0.876"//selected tp:float
+  "tp":"0.876",//selected tp:float
+  "quoteQty":"10" //AMOUNT USDT TO TRADE
 }
 ```
 - Returns:JSON object
@@ -549,7 +550,8 @@ Returns:JSON object
 - Request Arguements: `signal_id`- integer, id of signal to trade and JSON body containig
 ```json
 { 
-  "tp":"0.876"//selected tp:float
+  "tp":"0.876",//selected tp:float
+  "quoteQty":"10" //AMOUNT USDT TO TRADE
 }
 ```
 - Returns:JSON object
