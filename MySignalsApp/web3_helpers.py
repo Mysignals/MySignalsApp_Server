@@ -70,10 +70,14 @@ def verify_compensation_details(
     return True
 
 
-def get_pair_precision(pair: str):
-    precision = str(cache.get(f"prec_{pair}"))
+def get_pair_precision(pair: str, order_type: str):
+    precision = cache.get(f"{order_type}_prec_{pair}")
+    if precision is None:
+        raise UtilError(
+            "Service Unavailable", 503, "Pair precision not found, its not you its us"
+        )
     strpd_precision = (
-        precision.rstrip("0").rstrip(".") if "." in precision else precision
+        str(precision).rstrip("0").rstrip(".") if "." in precision else precision
     )
     precision = strpd_precision[::-1].find(".")
 
@@ -87,7 +91,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float
         "type": "LIMIT",
         "timeInForce": "GTC",
         "quantity": round(
-            quoteQty / signal["price"], get_pair_precision(signal["symbol"])
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"], "spot")
         ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
@@ -99,7 +103,7 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float
         "side": "SELL",
         "price": tp,
         "quantity": round(
-            quoteQty / signal["price"], get_pair_precision(signal["symbol"])
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"], "spot")
         ),
         "stopPrice": stops["sl"],
         "stopLimitPrice": stops["sl"],
@@ -118,7 +122,8 @@ def prepare_futures_trade(
         "type": "LIMIT",
         "timeInForce": "GTC",
         "quantity": round(
-            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
         ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
@@ -132,7 +137,8 @@ def prepare_futures_trade(
         "type": "STOP_MARKET",
         "stopPrice": stops["sl"],
         "quantity": round(
-            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
         ),
     }
     tp_params = {
@@ -140,7 +146,8 @@ def prepare_futures_trade(
         "side": "SELL" if signal["side"] == "BUY" else "BUY",
         "stopPrice": tp,
         "quantity": round(
-            quoteQty * lev / signal["price"], get_pair_precision(signal["symbol"])
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
         ),
         "closePosition": "true",
         "type": "TAKE_PROFIT_MARKET",

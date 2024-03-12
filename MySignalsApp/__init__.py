@@ -1,6 +1,7 @@
 from flask_limiter.util import get_remote_address
 from MySignalsApp.config import App_Config
 from binance.spot import Spot
+from binance.um_futures import UMFutures
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_session import Session
@@ -108,17 +109,22 @@ def get_contract_details():
 
 
 def set_precision(exchange_info):
-    for info in exchange_info:
-        cache.set(f'prec_{info["symbol"]}', info["minQty"])
+    (spot_, futures_) = exchange_info
+    for f_info in futures_:
+        cache.set(f'futures_prec_{f_info["symbol"]}', f_info["minQty"])
+    for s_info in spot_:
+        cache.set(f'spot_prec_{s_info["symbol"]}', s_info["minQty"])
 
 
 @cache.memoize(timeout=2629746)  # 1 month
 def get_exchange_info():
     spot_client = Spot()
+    futures_client = UMFutures()
 
     spt_info = spot_client.exchange_info(permissions=["SPOT"])["symbols"]
+    futr_info = futures_client.exchange_info()["symbols"]
 
-    return [
+    spot_ = [
         {
             "symbol": symbol["symbol"],
             "minQty": [
@@ -130,6 +136,21 @@ def get_exchange_info():
         for symbol in spt_info
         if symbol["quoteAsset"] == "USDT"
     ]
+
+    futures_ = [
+        {
+            "symbol": symbol["symbol"],
+            "minQty": [
+                filter_class["minQty"]
+                for filter_class in symbol["filters"]
+                if filter_class["filterType"] == "LOT_SIZE"
+            ][0],
+        }
+        for symbol in futr_info
+        if symbol["quoteAsset"] == "USDT"
+    ]
+
+    return (spot_, futures_)
 
 
 contract_address, abi = get_contract_details()

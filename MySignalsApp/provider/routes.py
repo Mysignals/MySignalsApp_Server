@@ -66,7 +66,7 @@ def get_signals():
 
 
 @provider.route("/spot/pairs")
-@cache.cached(timeout=432000)  # 5 days
+@cache.cached(timeout=864000)  # 10 days
 def get_spot_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -103,7 +103,7 @@ def get_spot_pairs():
 
 
 @provider.route("/futures/pairs")
-@cache.cached(timeout=432000)  # 5 days
+@cache.cached(timeout=864000)  # 10 days
 def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
