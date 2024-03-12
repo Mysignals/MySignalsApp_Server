@@ -106,7 +106,11 @@ def place_spot_trade(signal_id):
     spot_client = Spot(api_key=user_api_key, api_secret=user_api_secret)
 
     trade_uuid = get_uuid()
-    signal_data = TpSchema(id=signal_id, tp=request.get_json().get("tp"))
+    signal_data = TpSchema(
+        id=signal_id,
+        quoteQty=request.get_json().get("quoteQty"),
+        tp=request.get_json().get("tp"),
+    )
     try:
         placed_signal = query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
@@ -139,7 +143,7 @@ def place_spot_trade(signal_id):
 
         signal = signal.signal
         params, stops, stop_params = prepare_spot_trade(
-            signal, trade_uuid, signal_data.tp
+            signal, trade_uuid, signal_data.tp, signal_data.quoteQty
         )
         trade = spot_client.new_order(**params)
         sleep(1)
@@ -197,7 +201,11 @@ def place_futures_trade(signal_id):
 
     futures_client = UMFutures(key=user_api_key, secret=user_api_secret)
     trade_uuid = get_uuid()
-    signal_data = TpSchema(id=signal_id, tp=request.get_json().get("tp"))
+    signal_data = TpSchema(
+        id=signal_id,
+        quoteQty=request.get_json().get("quoteQty"),
+        tp=request.get_json().get("tp"),
+    )
     try:
         placed_signal = query_one_filtered(
             PlacedSignals, signal_id=signal_data.id, user_id=user_id
@@ -229,7 +237,7 @@ def place_futures_trade(signal_id):
 
         signal = signal.signal
         params, stops, stop_params, tp_params = prepare_futures_trade(
-            signal, trade_uuid, signal_data.tp
+            signal, trade_uuid, signal_data.tp, signal_data.quoteQty, signal["leverage"]
         )
 
         lev = futures_client.change_leverage(signal["symbol"], signal["leverage"])

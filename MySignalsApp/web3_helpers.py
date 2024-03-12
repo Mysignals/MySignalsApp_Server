@@ -1,6 +1,6 @@
 from web3 import Web3
 from MySignalsApp.errors.handlers import UtilError
-from MySignalsApp import contract_address, abi
+from MySignalsApp import contract_address, abi, cache
 from web3.datastructures import AttributeDict
 from web3.types import _Hash32, TxReceipt
 import os
@@ -70,13 +70,29 @@ def verify_compensation_details(
     return True
 
 
-def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float):
+def get_pair_precision(pair: str, order_type: str):
+    precision = cache.get(f"{order_type}_prec_{pair}")
+    if precision is None:
+        raise UtilError(
+            "Service Unavailable", 503, "Pair precision not found, its not you its us"
+        )
+    strpd_precision = (
+        str(precision).rstrip("0").rstrip(".") if "." in precision else precision
+    )
+    precision = strpd_precision[::-1].find(".")
+
+    return None if precision == -1 else precision
+
+
+def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float, quoteQty: float):
     params = {
         "symbol": signal["symbol"],
         "side": "BUY",
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": signal["quantity"],
+        "quantity": round(
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"], "spot")
+        ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -86,7 +102,9 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float):
         "symbol": signal["symbol"],
         "side": "SELL",
         "price": tp,
-        "quantity": signal["quantity"],
+        "quantity": round(
+            quoteQty / signal["price"], get_pair_precision(signal["symbol"], "spot")
+        ),
         "stopPrice": stops["sl"],
         "stopLimitPrice": stops["sl"],
         "stopLimitTimeInForce": "GTC",
@@ -95,13 +113,18 @@ def prepare_spot_trade(signal: dict, trade_uuid: str, tp: float):
     return (params, stops, stop_params)
 
 
-def prepare_futures_trade(signal: dict, trade_uuid: str, tp: float):
+def prepare_futures_trade(
+    signal: dict, trade_uuid: str, tp: float, quoteQty: float, lev: int
+):
     params = {
         "symbol": signal["symbol"],
         "side": signal["side"],
         "type": "LIMIT",
         "timeInForce": "GTC",
-        "quantity": signal["quantity"],
+        "quantity": round(
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
+        ),
         "price": signal["price"],
         "newClientOrderId": trade_uuid,
     }
@@ -113,13 +136,19 @@ def prepare_futures_trade(signal: dict, trade_uuid: str, tp: float):
         "closePosition": "true",
         "type": "STOP_MARKET",
         "stopPrice": stops["sl"],
-        "quantity": signal["quantity"],
+        "quantity": round(
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
+        ),
     }
     tp_params = {
         "symbol": signal["symbol"],
         "side": "SELL" if signal["side"] == "BUY" else "BUY",
         "stopPrice": tp,
-        "quantity": signal["quantity"],
+        "quantity": round(
+            (quoteQty * lev) / signal["price"],
+            get_pair_precision(signal["symbol"], "futures"),
+        ),
         "closePosition": "true",
         "type": "TAKE_PROFIT_MARKET",
     }

@@ -30,6 +30,7 @@ class App_Config:
     CACHE_TYPE = "RedisCache" if os.environ.get("REDIS") else "FileSystemCache"
     CACHE_REDIS_HOST = os.environ.get("REDISHOST")
     CACHE_REDIS_PORT = os.environ.get("REDISPORT")
+    CACHE_DEFAULT_TIMEOUT = 0
     CACHE_DIR = "cache"
 
     FLASK_ADMIN_SWATCH = "slate"

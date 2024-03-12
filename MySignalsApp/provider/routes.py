@@ -66,7 +66,7 @@ def get_signals():
 
 
 @provider.route("/spot/pairs")
-@cache.cached(timeout=432000)  # 5 days
+@cache.cached(timeout=864000)  # 10 days
 def get_spot_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -81,7 +81,7 @@ def get_spot_pairs():
         pairs = [
             symbol["symbol"]
             for symbol in usdt_symbols
-            if symbol["symbol"][-4:] == "USDT"
+            if symbol["quoteAsset"] == "USDT"
         ]
 
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
@@ -103,7 +103,7 @@ def get_spot_pairs():
 
 
 @provider.route("/futures/pairs")
-@cache.cached(timeout=432000)  # 5 days
+@cache.cached(timeout=864000)  # 10 days
 def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -116,7 +116,7 @@ def get_futures_pairs():
         pairs = [
             symbol["symbol"]
             for symbol in usdt_symbols
-            if symbol["symbol"][-4:] == "USDT" and symbol["contractType"] == "PERPETUAL"
+            if symbol["quoteAsset"] == "USDT" and symbol["contractType"] == "PERPETUAL"
         ]
         return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
     except ClientError as e:
@@ -216,7 +216,9 @@ def new_spot_trade():
         api_secret=os.getenv("SSEC"),
         base_url="https://testnet.binance.vision",
     )
-    params, _, stop_params = prepare_spot_trade(signal_data, get_uuid(), data.tp1)
+    params, _, stop_params = prepare_spot_trade(
+        signal_data, get_uuid(), data.tp1, data.quantity
+    )
     spot_client.new_order_test(**params)
     spot_client.new_oco_order(**stop_params)
     try:
@@ -275,7 +277,7 @@ def new_futures_trade():
         base_url="https://testnet.binancefuture.com",
     )
     params, _, stop_params, tp_params = prepare_futures_trade(
-        signal_data, get_uuid(), data.tp1
+        signal_data, get_uuid(), data.tp1, data.quantity, data.leverage
     )
     futures_client.new_order_test(**params)
     futures_client.new_order_test(**stop_params)
