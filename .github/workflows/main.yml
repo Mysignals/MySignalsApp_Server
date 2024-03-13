@@ -22,15 +22,17 @@ jobs:
 
           script: |
             cd MySignalsApp_Server
+            set -e
             sudo supervisorctl stop MySignalsApp
             git pull
             source venv/bin/activate
+            pip install -r requirements.txt
             export FLASK_APP=MySignalsApp
             flask db migrate
             flask db upgrade
             deactivate
             cd ../
             sudo supervisorctl start MySignalsApp
-            sudo supervisorctl status MySignalsApp
+            sudo supervisorctl rstatus MySignalsApp
             echo 'Deployent successful'
             
