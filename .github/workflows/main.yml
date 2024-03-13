@@ -20,51 +20,40 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           password: ${{ secrets.SSH_PASSWORD }}
 
-      - name: Stop MySignalsApp (if running)
-        run: |
-          set -e
-          cd MySignalsApp_Server
-          sudo supervisorctl stop MySignalsApp
+          script: |
+            set -e
+            
+            # Stop MySignalsApp (if running)
+            cd MySignalsApp_Server
+            sudo supervisorctl stop MySignalsApp
 
-      - name: Pull code changes
-        run: |
-          cd MySignalsApp_Server
-          git pull
+            # Pull latest code changes
+            git pull
 
-      - name: Activate virtual environment
-        run: |
-          cd MySignalsApp_Server
-          source venv/bin/activate
+            # Activate virtual environment
+            source venv/bin/activate
 
-      - name: Install dependencies
-        run: |
-          cd MySignalsApp_Server
-          pip install -r requirements.txt
+            # Install dependencies
+            pip install -r requirements.txt
 
-      - name: Set Flask application entry point
-        run: export FLASK_APP=MySignalsApp
+            # Set Flask application entry point
+            export FLASK_APP=MySignalsApp
 
-      - name: Database migrations
-        run: |
-          cd MySignalsApp_Server
-          flask db migrate
-          flask db upgrade
+            # Database migrations
+            flask db migrate
+            flask db upgrade
 
-      - name: Deactivate virtual environment
-        run: |
-          cd MySignalsApp_Server
-          deactivate
+            # Deactivate virtual environment
+            deactivate
 
-      - name: Navigate back to parent directory
-        run: |
-          cd MySignalsApp_Server
-          cd ../
+            # Navigate back to parent directory
+            cd ../
 
-      - name: Start MySignalsApp using supervisor
-        run: sudo supervisorctl start MySignalsApp
+            # Start MySignalsApp using supervisor
+            sudo supervisorctl start MySignalsApp
 
-      - name: Check MySignalsApp status
-        run: sudo supervisorctl status MySignalsApp
+            # Check MySignalsApp status
+            sudo supervisorctl status MySignalsApp
 
-      - name: Deployment successful
-        run: echo 'Deployment successful'
+            # Success message
+            echo 'Deployent successful'
