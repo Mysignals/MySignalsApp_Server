@@ -25,6 +25,7 @@ jobs:
             sudo supervisorctl stop MySignalsApp
             git pull
             source venv/bin/activate
+            export FLASK_APP=MySignalsApp
             flask db migrate
             flask db upgrade
             deactivate
