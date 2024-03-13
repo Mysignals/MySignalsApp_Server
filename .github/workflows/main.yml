@@ -28,27 +28,37 @@ jobs:
 
       - name: Pull code changes
         run: |
+          cd MySignalsApp_Server
           git pull
 
       - name: Activate virtual environment
-        run: source venv/bin/activate
+        run: |
+          cd MySignalsApp_Server
+          source venv/bin/activate
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          cd MySignalsApp_Server
+          pip install -r requirements.txt
 
       - name: Set Flask application entry point
         run: export FLASK_APP=MySignalsApp
 
       - name: Database migrations
         run: |
+          cd MySignalsApp_Server
           flask db migrate
           flask db upgrade
 
       - name: Deactivate virtual environment
-        run: deactivate
+        run: |
+          cd MySignalsApp_Server
+          deactivate
 
       - name: Navigate back to parent directory
-        run: cd ../
+        run: |
+          cd MySignalsApp_Server
+          cd ../
 
       - name: Start MySignalsApp using supervisor
         run: sudo supervisorctl start MySignalsApp
