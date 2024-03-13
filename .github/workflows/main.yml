@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy MySignalApp
+      - name: Login MySignalApp
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -20,19 +20,41 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           password: ${{ secrets.SSH_PASSWORD }}
 
-          script: |
-            cd MySignalsApp_Server
-            set -e
-            sudo supervisorctl stop MySignalsApp
-            git pull
-            source venv/bin/activate
-            pip install -r requirements.txt
-            export FLASK_APP=MySignalsApp
-            flask db migrate
-            flask db upgrade
-            deactivate
-            cd ../
-            sudo supervisorctl start MySignalsApp
-            sudo supervisorctl status MySignalsApp
-            echo 'Deployent successful'
-            
+      - name: Stop MySignalsApp (if running)
+        run: |
+          set -e
+          cd MySignalsApp_Server
+          sudo supervisorctl stop MySignalsApp
+
+      - name: Pull code changes
+        run: |
+          git pull
+
+      - name: Activate virtual environment
+        run: source venv/bin/activate
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set Flask application entry point
+        run: export FLASK_APP=MySignalsApp
+
+      - name: Database migrations
+        run: |
+          flask db migrate
+          flask db upgrade
+
+      - name: Deactivate virtual environment
+        run: deactivate
+
+      - name: Navigate back to parent directory
+        run: cd ../
+
+      - name: Start MySignalsApp using supervisor
+        run: sudo supervisorctl start MySignalsApp
+
+      - name: Check MySignalsApp status
+        run: sudo supervisorctl status MySignalsApp
+
+      - name: Deployment successful
+        run: echo 'Deployment successful'
