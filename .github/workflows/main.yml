@@ -33,6 +33,6 @@ jobs:
             deactivate
             cd ../
             sudo supervisorctl start MySignalsApp
-            sudo supervisorctl rstatus MySignalsApp
+            sudo supervisorctl status MySignalsApp
             echo 'Deployent successful'
             
