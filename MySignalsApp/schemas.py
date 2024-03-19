@@ -41,7 +41,7 @@ class RegisterSchema(BaseModel):
 
 
 class LoginSchema(BaseModel):
-    user_name_or_mail: str
+    user_name_or_mail: constr(to_lower=True)
     password: str
 
 
