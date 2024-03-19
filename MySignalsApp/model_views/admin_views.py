@@ -166,6 +166,7 @@ class PlacedSignalsModelView(ModelView):
     )
     form_columns = ("user", "signal_id", "rating", "date_created")
 
+
 class NotificationsModelView(ModelView):
     def is_accessible(self):
         user = session.get("user") if session else None
@@ -176,7 +177,7 @@ class NotificationsModelView(ModelView):
         return redirect("/admin/login", 302)
 
     can_create = True
-    column_searchable_list = ["user_id","message"]
+    column_searchable_list = ["user_id", "message"]
     column_filters = ["user_id", "user", "date_created"]
     column_list = (
         "id",
