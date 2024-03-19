@@ -18,7 +18,7 @@ class PlacedSignals(BaseModel):
         self.tx_hash = tx_hash
 
     def __repr__(self):
-        return f"id({self.id}), user_id({self.user_id}), signal({self.signal_id}), rating({self.rating}), tx_hash({self.tx_hash}), date_placed {self.date_created})"
+        return f"id({self.id}), user_id({self.user_id}), signal({self.signal_id}), rating({self.rating}), tx_hash({self.tx_hash}), date_placed {self.date_created}) \n"
 
     def format(self):
         return {

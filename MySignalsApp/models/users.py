@@ -69,7 +69,7 @@ class User(BaseModel):
         self.set_referral_code()
 
     def __repr__(self):
-        return f"id({self.id}), user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_created({self.date_created}))"
+        return f"id({self.id}), user_name({self.user_name}), email({self.email}), is_active({self.is_active}), date_created({self.date_created})) \n"
 
     def __str__(self):
         return f"{self.email}"

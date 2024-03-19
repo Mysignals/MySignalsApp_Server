@@ -16,7 +16,7 @@ class Notification(BaseModel):
         self.message = message
 
     def __repr__(self):
-        return f"id({self.id}), user_name({self.user.user_name}),user_id({self.user_id}),message({self.message}), date_created({self.date_created}))"
+        return f"id({self.id}), user_name({self.user.user_name}),user_id({self.user_id}),message({self.message}), date_created({self.date_created})) \n"
 
     def __str__(self):
         return f"{self.message}"
