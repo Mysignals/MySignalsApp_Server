@@ -9,6 +9,7 @@ from MySignalsApp.models.users import User
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.provider_application import ProviderApplication
 from MySignalsApp.models.placed_signals import PlacedSignals
+from MySignalsApp.models.notifications import Notification
 from flask_wtf import FlaskForm
 
 
@@ -166,6 +167,28 @@ class PlacedSignalsModelView(ModelView):
     form_columns = ("user", "signal_id", "rating", "date_created")
 
 
+class NotificationsModelView(ModelView):
+    def is_accessible(self):
+        user = session.get("user") if session else None
+        return "Registrar" in user.get("permission") if user else False
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash("you are not authorized", category="error")
+        return redirect("/admin/login", 302)
+
+    can_create = True
+    column_searchable_list = ["user_id", "message"]
+    column_filters = ["user_id", "user", "date_created"]
+    column_list = (
+        "id",
+        "user_id",
+        "user",
+        "message",
+        "date_created",
+    )
+    form_columns = ("user", "message", "date_created")
+
+
 # admin.add_view(AdminLoginView(endpoint="login", name="login"))
 # admin.add_view(AdminLogoutView(endpoint="logout", name="logout"))
 # admin.add_view(UserModelView(User, db.session))
@@ -179,4 +202,5 @@ model_views = [
     ProviderApplicationView(ProviderApplication, db.session),
     SignalModelView(Signal, db.session),
     PlacedSignalsModelView(PlacedSignals, db.session),
+    NotificationsModelView(Notification, db.session),
 ]

@@ -23,7 +23,7 @@ class UserTokens(db.Model):
         self.token = token
 
     def __repr__(self):
-        return f"id({self.id}), user_id({self.user_id}), token({self.token}), expiration {self.expiration})"
+        return f"id({self.id}), user_id({self.user_id}), token({self.token}), expiration {self.expiration}) \n"
 
     def insert(self):
         """Insert the current object into the database"""

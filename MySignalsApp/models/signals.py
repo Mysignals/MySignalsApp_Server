@@ -24,7 +24,7 @@ class Signal(BaseModel):
         self.short_text = short_text
 
     def __repr__(self):
-        return f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider}))"
+        return f"id({self.id}), signal({self.signal}), status({self.status}), date_created({self.date_created}), provider({self.user.user_name}), provider_id({self.provider})) \n"
 
     def __str__(self):
         return f"{self.signal}"

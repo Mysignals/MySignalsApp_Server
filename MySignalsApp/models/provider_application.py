@@ -20,7 +20,7 @@ class ProviderApplication(BaseModel):
         self.socials_and_additional = socials_and_additional
 
     def __repr__(self):
-        return f"username({self.user.user_name}, wallet({self.wallet}), experience({self.experience}))"
+        return f"username({self.user.user_name}, wallet({self.wallet}), experience({self.experience})) \n"
 
     def format(self):
         return {
