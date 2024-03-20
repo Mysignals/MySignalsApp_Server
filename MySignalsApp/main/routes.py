@@ -4,7 +4,7 @@ from MySignalsApp.models.base import get_uuid
 from MySignalsApp.models.signals import Signal
 from MySignalsApp.models.placed_signals import PlacedSignals
 from MySignalsApp.models.notifications import Notification
-from flask import jsonify, Blueprint, request, session, current_app
+from flask import jsonify, Blueprint, request, session, current_app, send_from_directory
 from MySignalsApp.schemas import (
     ValidTxSchema,
     PageQuerySchema,
@@ -445,3 +445,8 @@ def apply_provider():
     )
     application.insert()
     return jsonify({"message": "success", "status": True}), 200
+
+
+@main.route("/favicon.ico")
+def favicon():
+    return send_from_directory(current_app.config["STATIC_FOLDER"], "favicon.ico")
