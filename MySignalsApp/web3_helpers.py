@@ -2,6 +2,7 @@ from web3 import Web3
 from MySignalsApp.errors.handlers import UtilError
 from MySignalsApp import contract_address, abi, cache
 from web3.datastructures import AttributeDict
+from web3.exceptions import TransactionNotFound
 from web3.types import _Hash32, TxReceipt
 import os
 
@@ -12,7 +13,10 @@ contract = w3.eth.contract(address=contract_address, abi=abi)
 
 
 def is_transaction_confirmed(tx_hash: _Hash32) -> TxReceipt:
-    tx_receipt = w3.eth.get_transaction_receipt(tx_hash)
+    try:
+        tx_receipt = w3.eth.get_transaction_receipt(tx_hash)
+    except TransactionNotFound as e:
+        raise UtilError("Resource not found", 404, str(e))
     if not (
         tx_receipt.status and (w3.eth.get_block_number() - tx_receipt.blockNumber) >= 2
     ):
