@@ -741,6 +741,26 @@ Returns:JSON object
   "status": true
 }
 ```
+
+
+---
+<br>
+
+  `POST '/mytrades/cancel/${id}'`
+- cancel a trade that was placed on binance through MySignals
+- Request Arguements: `id`- integer id of signal to cancel
+- Request Body: Empty Json Object
+```json 
+{}
+```
+- Returns:JSON object
+```json
+{
+    "message": "Successfully Cancelled Signal!",
+    "status": true,
+    "signal_id": 13,
+}
+```
 ---
 <br>
 

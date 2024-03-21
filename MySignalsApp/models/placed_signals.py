@@ -8,6 +8,8 @@ class PlacedSignals(BaseModel):
     user_id = db.Column(db.String(34), db.ForeignKey("users.id"), nullable=True)
     signal_id = db.Column(db.Integer(), db.ForeignKey("signals.id"), nullable=False)
     tx_hash = db.Column(db.String(66), nullable=False, default="0x0Dead")
+    order_id = db.Column(db.String(40), nullable=False, default="0000")
+    is_cancelled = db.Column(db.Boolean(), nullable=False, default=False)
     rating = db.Column(db.Integer(), nullable=False, default=0)
 
     db.UniqueConstraint(user_id, signal_id, name="_unique_user_signal_pair")
@@ -26,6 +28,8 @@ class PlacedSignals(BaseModel):
             "user_id": self.user_id,
             "signal_id": self.signal_id,
             "tx_hash": self.tx_hash,
+            "order_id": self.order_id,
+            "is_cancelled": self.is_cancelled,
             "rating": self.rating,
             "date_created": self.date_created,
         }
