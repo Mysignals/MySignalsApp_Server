@@ -454,16 +454,10 @@ def cancel_trade(signal_id):
         )
 
         if not placed_signal:
-            return (
-                jsonify(
-                    {
-                        "error": "Resource Not found",
-                        "message": "Trade not found, Did you take this trade?",
-                        "status": False,
-                    }
-                ),
-                404,
-            )
+            raise UtilError("Resource Not found",404,"Trade not found, Did you take this trade?")
+            
+        if placed_signal.is_cancelled:
+            raise UtilError("Bad Request",400,"Trade Already Cancelled!")
 
         signal = placed_signal.signal
         if signal.is_spot:
@@ -487,9 +481,8 @@ def cancel_trade(signal_id):
                 "message": "Successfully Cancelled Signal!",
                 "status": True,
                 "signal_id": signal_data.id,
-            },
-            200,
-        )
+            }
+        ), 200
     except ClientError as e:
         return (
             jsonify(
