@@ -1,7 +1,7 @@
 # MySignalsApp_Server
 
 ## TODO 
-* add tx confirm from subgraph
+* Switch to MainNet
 
 ## Table Of Contents
 - [Set up for Local Machine](#set-up-the-server)
