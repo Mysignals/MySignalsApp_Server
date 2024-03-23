@@ -148,6 +148,8 @@ def place_spot_trade(signal_id):
         trade = spot_client.new_order(**params)
         sleep(1)
         trade2 = spot_client.new_oco_order(**stop_params)
+        placed_signal.order_id = trade_uuid
+        placed_signal.update()
         notify = Notification(
             user.id,
             f"Spot Signal {signal_data.id} order has been placed on your Binance Account",
@@ -245,6 +247,8 @@ def place_futures_trade(signal_id):
         sleep(1)
         futures_client.new_order(**stop_params)
         futures_client.new_order(**tp_params)
+        placed_signal.order_id = trade_uuid
+        placed_signal.update()
         notify = Notification(
             user.id,
             f"Futures Signal {signal_data.id} order has been placed on your Binance Account",
@@ -410,6 +414,7 @@ def get_user_placed_signals():
             {
                 **data.signal.format(),
                 "tx_hash": data.tx_hash,
+                "is_cancelled": data.is_cancelled,
                 "user_rating": data.rating,
                 "date_created": data.date_created,
             }
@@ -430,6 +435,70 @@ def get_user_placed_signals():
         ),
         200,
     )
+
+
+@main.route("/mytrades/cancel/<int:signal_id>", methods=["POST"])
+def cancel_trade(signal_id):
+    user_id = has_permission(session, "User")
+    user = is_active(User, user_id)
+
+    signal_data = IntQuerySchema(id=signal_id)
+
+    has_api_keys(user)
+
+    user_api_key = kryptr.decrypt((user.api_key).encode("utf-8")).decode("utf-8")
+    user_api_secret = kryptr.decrypt((user.api_secret).encode("utf-8")).decode("utf-8")
+    try:
+        placed_signal = query_one_filtered(
+            PlacedSignals, signal_id=signal_data.id, user_id=user_id
+        )
+
+        if not placed_signal:
+            raise UtilError(
+                "Resource Not found", 404, "Trade not found, Did you take this trade?"
+            )
+
+        if placed_signal.is_cancelled:
+            raise UtilError("Bad Request", 400, "Trade Already Cancelled!")
+
+        signal = placed_signal.signal
+        if signal.is_spot:
+            spot_client = Spot(api_key=user_api_key, api_secret=user_api_secret)
+
+            spot_client.cancel_order(
+                signal.signal.get("symbol"), origClientOrderId=placed_signal.order_id
+            )
+            placed_signal.is_cancelled = True
+            placed_signal.update()
+        else:
+            futures_client = UMFutures(key=user_api_key, secret=user_api_secret)
+            futures_client.cancel_order(
+                symbol=signal.signal.get("symbol"),
+                origClientOrderId=placed_signal.order_id,
+            )
+            placed_signal.is_cancelled = True
+            placed_signal.update()
+        return (
+            jsonify(
+                {
+                    "message": "Successfully Cancelled Signal!",
+                    "status": True,
+                    "signal_id": signal_data.id,
+                }
+            ),
+            200,
+        )
+    except ClientError as e:
+        return (
+            jsonify(
+                {
+                    "error": e.error_code,
+                    "message": f"{e.error_message}",
+                    "status": False,
+                }
+            ),
+            e.status_code,
+        )
 
 
 @main.route("/apply/provider", methods=["POST"])

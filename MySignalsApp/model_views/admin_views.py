@@ -160,7 +160,8 @@ class PlacedSignalsModelView(ModelView):
         "user",
         "signal_id",
         "signal",
-        "tx_hash",
+        "is_cancelled",
+        "order_id" "tx_hash",
         "rating",
         "date_created",
     )
