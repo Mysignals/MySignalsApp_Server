@@ -518,4 +518,4 @@ def apply_provider():
 
 @main.route("/favicon.ico")
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'), "favicon.png")
+    return send_from_directory(os.path.join(current_app.root_path, 'static'), "favicon.png")
