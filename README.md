@@ -16,6 +16,9 @@
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
+<img src="https://komarev.com/ghpvc/?username=mysignalsapp&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
+<hr>
+
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
 ---
 <br>
