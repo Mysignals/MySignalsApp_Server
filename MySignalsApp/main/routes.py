@@ -454,16 +454,12 @@ def cancel_trade(signal_id):
         )
 
         if not placed_signal:
-            return (
-                jsonify(
-                    {
-                        "error": "Resource Not found",
-                        "message": "Trade not found, Did you take this trade?",
-                        "status": False,
-                    }
-                ),
-                404,
+            raise UtilError(
+                "Resource Not found", 404, "Trade not found, Did you take this trade?"
             )
+
+        if placed_signal.is_cancelled:
+            raise UtilError("Bad Request", 400, "Trade Already Cancelled!")
 
         signal = placed_signal.signal
         if signal.is_spot:
@@ -482,12 +478,14 @@ def cancel_trade(signal_id):
             )
             placed_signal.is_cancelled = True
             placed_signal.update()
-        return jsonify(
-            {
-                "message": "Successfully Cancelled Signal!",
-                "status": True,
-                "signal_id": signal_data.id,
-            },
+        return (
+            jsonify(
+                {
+                    "message": "Successfully Cancelled Signal!",
+                    "status": True,
+                    "signal_id": signal_data.id,
+                }
+            ),
             200,
         )
     except ClientError as e:
@@ -520,4 +518,4 @@ def apply_provider():
 
 @main.route("/favicon.ico")
 def favicon():
-    return send_from_directory(current_app.config["STATIC_FOLDER"], "favicon.ico")
+    return send_from_directory(os.path.join(current_app.root_path, 'static'), "favicon.png")

@@ -1,7 +1,7 @@
 # MySignalsApp_Server
 
 ## TODO 
-* add tx confirm from subgraph
+* Switch to MainNet
 
 ## Table Of Contents
 - [Set up for Local Machine](#set-up-the-server)
@@ -15,6 +15,9 @@
   - [Registrar Routes](#registrar-enpoints)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
+
+<img src="https://komarev.com/ghpvc/?username=mysignalsapp&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
+<hr>
 
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
 ---
