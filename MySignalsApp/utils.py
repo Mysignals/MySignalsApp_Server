@@ -8,6 +8,9 @@ from flask import current_app, url_for, render_template
 from MySignalsApp import db, mail, cache
 from flask_mail import Message
 from threading import Thread
+from telegram import Bot
+from telegram.constants import ParseMode
+import asyncio
 import os
 
 
@@ -75,6 +78,26 @@ def has_api_keys(user):
     if user.api_key and user.api_secret:
         return
     raise UtilError("Forbidden", 403, "You haven't updated your api credentials")
+
+
+# Notification Helpers
+def send_async_notify(bot, msg):
+    asyncio.run(
+        bot.send_message(
+            chat_id=os.getenv("TELEGRAM_CHAT_ID"),
+            text=msg,
+            parse_mode=ParseMode.MARKDOWN_V2,
+        )
+    )
+
+
+def send_tg_notification(provider, signal_type, side, symbol):
+    bot = Bot(token=os.getenv("TELEGRAM_KEY"))
+    text = f"""📣🔔🔔🔔🔔🔔🔔🔔
+Signal Provider *{provider}* Just uploaded a *{signal_type}* *{side}* signal for *{symbol}*
+visit mysignals\.app/signals to see it now\!\!
+💸💸💸💸💸"""
+    Thread(target=send_async_notify, args=(bot, text)).start()
 
 
 # Flask Mail helpers

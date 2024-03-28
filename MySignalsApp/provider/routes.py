@@ -21,6 +21,7 @@ from MySignalsApp.utils import (
     query_one_filtered,
     is_active,
     calculate_rating,
+    send_tg_notification,
 )
 from binance.spot import Spot
 import os
@@ -84,7 +85,10 @@ def get_spot_pairs():
             if symbol["quoteAsset"] == "USDT"
         ]
 
-        return jsonify({"message": "success", "pairs": sorted(pairs), "status": True}), 200
+        return (
+            jsonify({"message": "success", "pairs": sorted(pairs), "status": True}),
+            200,
+        )
     except ClientError as e:
         return (
             jsonify(
@@ -118,7 +122,10 @@ def get_futures_pairs():
             for symbol in usdt_symbols
             if symbol["quoteAsset"] == "USDT" and symbol["contractType"] == "PERPETUAL"
         ]
-        return jsonify({"message": "success", "pairs": sorted(pairs), "status": True}), 200
+        return (
+            jsonify({"message": "success", "pairs": sorted(pairs), "status": True}),
+            200,
+        )
     except ClientError as e:
         return (
             jsonify(
@@ -221,6 +228,10 @@ def new_spot_trade():
     )
     spot_client.new_order_test(**params)
     spot_client.new_oco_order(**stop_params)
+
+    send_tg_notification(
+        user.user_name, "SPOT", signal_data.get("side"), signal_data.get("symbol")
+    )
     try:
         signal = Signal(signal_data, True, user_id, True, data.short_text)
         signal.insert()
@@ -282,6 +293,10 @@ def new_futures_trade():
     futures_client.new_order_test(**params)
     futures_client.new_order_test(**stop_params)
     futures_client.new_order_test(**tp_params)
+
+    send_tg_notification(
+        user.user_name, "FUTURES", signal_data.get("side"), signal_data.get("symbol")
+    )
     try:
         signal = Signal(signal_data, True, user_id, False, data.short_text)
         signal.insert()
