@@ -80,6 +80,7 @@ pydantic==1.10.7
 Pygments==2.15.1
 pyOpenSSL==23.1.1
 python-dotenv
+python-telegram-bot
 pytz==2023.3
 pyunormalize==15.0.0
 redis==4.5.5
