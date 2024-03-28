@@ -66,7 +66,7 @@ def get_signals():
 
 
 @provider.route("/spot/pairs")
-@cache.cached(timeout=864000)  # 10 days
+@cache.cached(timeout=432000)  # 5 days
 def get_spot_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -84,7 +84,7 @@ def get_spot_pairs():
             if symbol["quoteAsset"] == "USDT"
         ]
 
-        return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
+        return jsonify({"message": "success", "pairs": sorted(pairs), "status": True}), 200
     except ClientError as e:
         return (
             jsonify(
@@ -103,7 +103,7 @@ def get_spot_pairs():
 
 
 @provider.route("/futures/pairs")
-@cache.cached(timeout=864000)  # 10 days
+@cache.cached(timeout=432000)  # 5 days
 def get_futures_pairs():
     user_id = has_permission(session, "Provider")
     user = is_active(User, user_id)
@@ -118,7 +118,7 @@ def get_futures_pairs():
             for symbol in usdt_symbols
             if symbol["quoteAsset"] == "USDT" and symbol["contractType"] == "PERPETUAL"
         ]
-        return jsonify({"message": "success", "pairs": pairs, "status": True}), 200
+        return jsonify({"message": "success", "pairs": sorted(pairs), "status": True}), 200
     except ClientError as e:
         return (
             jsonify(
