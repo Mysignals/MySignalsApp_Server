@@ -1,3 +1,5 @@
+<img src="https://komarev.com/ghpvc/?username=mysignalsapp&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
+<hr>
 # MySignalsApp_Server
 
 ## TODO 
@@ -16,8 +18,6 @@
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
-<img src="https://komarev.com/ghpvc/?username=mysignalsapp&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
-<hr>
 
 ## **MY SIGNALSAPP API-ENDPOINT DOCUMENTATION**
 ---
