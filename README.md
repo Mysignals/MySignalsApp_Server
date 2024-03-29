@@ -1,4 +1,4 @@
-<img src="https://komarev.com/ghpvc/?username=mysignalsapp&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
+<img src="https://komarev.com/ghpvc/?username=mysignalsapp_server&label=Hellos&style=for-the-badge&color=blueviolet" alt=""/>
 <hr>
 # MySignalsApp_Server
 
