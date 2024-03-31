@@ -160,6 +160,7 @@ def login_user():
                 )
 
             session["user"] = {"id": user.id, "permission": user.roles.value}
+            roles = user.roles.value
             return (
                 jsonify(
                     {
@@ -168,7 +169,9 @@ def login_user():
                         "user_name": user.user_name,
                         "is_active": user.is_active,
                         "has_api_keys": bool(user.api_key and user.api_secret),
-                        "permission": user.roles.value,
+                        "permission": [roles]
+                        if not isinstance(roles, tuple)
+                        else roles,
                         "referral_code": user.referral_code,
                         "status": True,
                     }
@@ -176,6 +179,7 @@ def login_user():
                 200,
             )
         session["user"] = {"id": user.id, "permission": user.roles.value}
+        roles = user.roles.value
         return (
             jsonify(
                 {
@@ -184,7 +188,7 @@ def login_user():
                     "user_name": user.user_name,
                     "is_active": user.is_active,
                     "has_api_keys": bool(user.api_key and user.api_secret),
-                    "permission": user.roles.value,
+                    "permission": [roles] if not isinstance(roles, tuple) else roles,
                     "referral_code": user.referral_code,
                     "status": True,
                 }
@@ -308,11 +312,12 @@ def see_sess():
         )
     try:
         user = query_one_filtered(User, id=user["id"])
+        roles = user.roles.value
         return jsonify(
             {
                 "message": "Success",
                 **user.format(),
-                "roles": user.roles.value,
+                "roles": [roles] if not isinstance(roles, tuple) else roles,
                 "status": True,
             }
         )
