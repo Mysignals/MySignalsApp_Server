@@ -95,7 +95,7 @@ def send_tg_notification(provider, signal_type, side, symbol):
     bot = Bot(token=os.getenv("TELEGRAM_KEY"))
     text = f"""📣🔔🔔🔔🔔🔔🔔🔔
 Signal Provider *{provider}* Just uploaded a *{signal_type}* *{side}* signal for *{symbol}*
-visit mysignals\.app/signals to see it now\!\!
+visit mysignals\.app/dashboard/signals to see it now\!\!
 💸💸💸💸💸"""
     Thread(target=send_async_notify, args=(bot, text)).start()
 
