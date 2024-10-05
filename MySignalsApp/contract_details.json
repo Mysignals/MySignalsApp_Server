@@ -1,5 +1,5 @@
 {
-  "address": "0x1B97CcE2810bebfE4943CD637b77E530f6859B46",
+  "address": "0x289F0529FBb2eF4e80479079C93F94723CC51780",
   "abi": [
     {
       "inputs": [
@@ -19,18 +19,23 @@
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "_payPercent",
-          "type": "uint256"
-        },
-        {
           "internalType": "bytes32",
           "name": "_merkleRoot",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_airdropBalance",
+          "type": "uint256"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "MySignalApp__AllocationExceedsTokensLeft",
+      "type": "error"
     },
     {
       "inputs": [],
@@ -49,6 +54,11 @@
     },
     {
       "inputs": [],
+      "name": "MySignalApp__InvalidPresalePurchaseAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "MySignalApp__NotFallback",
       "type": "error"
     },
@@ -59,12 +69,22 @@
     },
     {
       "inputs": [],
+      "name": "MySignalApp__NotInitialized",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "MySignalApp__NotProvider",
       "type": "error"
     },
     {
       "inputs": [],
       "name": "MySignalApp__NotRegistrar",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MySignalApp__PresaleMustEnd",
       "type": "error"
     },
     {
@@ -89,6 +109,25 @@
         }
       ],
       "name": "AddressProviderChange",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AirdropClaimed",
       "type": "event"
     },
     {
@@ -197,6 +236,31 @@
         {
           "indexed": false,
           "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "tokensReceived",
+          "type": "uint256"
+        }
+      ],
+      "name": "PreSaleTokensPurchased",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
           "name": "provider",
           "type": "address"
         }
@@ -240,31 +304,6 @@
         }
       ],
       "name": "RegistrarChange",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "id",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "userId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "SingleDeposit",
       "type": "event"
     },
     {
@@ -394,6 +433,24 @@
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "_minBuy",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_maxBuy",
+          "type": "uint256"
+        }
+      ],
+      "name": "changeBuyLimits",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "_addr",
           "type": "address"
@@ -438,9 +495,9 @@
           "type": "bytes32[]"
         },
         {
-          "internalType": "uint64",
+          "internalType": "uint256",
           "name": "_amount",
-          "type": "uint64"
+          "type": "uint256"
         }
       ],
       "name": "checkInWhitelist",
@@ -462,9 +519,9 @@
           "type": "bytes32[]"
         },
         {
-          "internalType": "uint64",
+          "internalType": "uint256",
           "name": "_amount",
-          "type": "uint64"
+          "type": "uint256"
         }
       ],
       "name": "claimAirdrop",
@@ -510,6 +567,13 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "endPreSale",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -543,6 +607,51 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPresaleDetails",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "saleCount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountRaised",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountWithdrawable",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokensLeft",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokensSold",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokensPerBnb",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct MySignalApp.presaleDetails",
+          "name": "",
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",
@@ -613,19 +722,6 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "i_payPercent",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [
         {
           "internalType": "address",
@@ -646,6 +742,29 @@
           "type": "bool"
         }
       ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalSupply",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "preSaleAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokensPerBnb",
+          "type": "uint256"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -770,6 +889,71 @@
     },
     {
       "inputs": [],
+      "name": "s_isInitialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "s_isPresale",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "s_maxBuy",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "s_minBuy",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "s_tokensPerBnb",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "symbol",
       "outputs": [
         {
@@ -846,6 +1030,17 @@
       ],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawPreSale",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ]
 }
