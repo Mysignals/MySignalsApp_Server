@@ -45,6 +45,7 @@ kryptr = Fernet(KEY.encode("utf-8"))
 
 @main.route("/")
 def get_active_signals():
+    _ = has_permission(session, "User")
     page = PageQuerySchema(page=request.args.get("page", 1))
     try:
         signals = query_paginate_filtered(Signal, page.page, status=True)
